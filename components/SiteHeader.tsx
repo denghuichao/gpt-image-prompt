@@ -14,10 +14,14 @@ function ClerkActions({
   signInLabel,
   creditsLabel,
   buyCreditsLabel,
+  createTemplateLabel,
+  showCreateTemplate,
 }: {
   signInLabel: string;
   creditsLabel: string;
   buyCreditsLabel: string;
+  createTemplateLabel: string;
+  showCreateTemplate: boolean;
 }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useClerk();
@@ -143,6 +147,20 @@ function ClerkActions({
                 <ChevronRightIcon className="h-4 w-4 text-night-500" />
               </Link>
 
+              {showCreateTemplate && (
+                <Link
+                  href="/prompts/new"
+                  className="mt-1 flex items-center justify-between rounded-xl px-3 py-2 text-sm text-night-100 transition hover:bg-night-800/80"
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="flex items-center gap-2">
+                    <SparklesIcon className="h-4 w-4 text-glow-400" />
+                    {createTemplateLabel}
+                  </span>
+                  <ChevronRightIcon className="h-4 w-4 text-night-500" />
+                </Link>
+              )}
+
               <button
                 type="button"
                 className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-night-100 transition hover:bg-red-500/15 hover:text-red-300"
@@ -184,6 +202,7 @@ export default function SiteHeader() {
   const isGallery = router.pathname === "/gallery";
   const [search, setSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const navItems = [
     { href: "/", label: dict.nav.home },
@@ -197,6 +216,22 @@ export default function SiteHeader() {
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkAdmin() {
+      try {
+        const res = await fetch("/api/admin/me");
+        if (!res.ok) return;
+        const data = await res.json() as { isAdmin?: boolean };
+        if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
+      } catch {
+        if (!cancelled) setIsAdmin(false);
+      }
+    }
+    void checkAdmin();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -314,6 +349,8 @@ export default function SiteHeader() {
               signInLabel={dict.nav.signIn}
               creditsLabel={locale === "en" ? "Current Credits" : "当前积分"}
               buyCreditsLabel={locale === "en" ? "Buy Credits" : "购买积分"}
+              createTemplateLabel={locale === "en" ? "New Template" : "新建模版"}
+              showCreateTemplate={isAdmin}
             />
           ) : (
             <span className="rounded-full border border-night-700/60 bg-night-900/40 px-3 py-1 text-xs text-night-600">

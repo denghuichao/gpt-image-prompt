@@ -45,7 +45,7 @@ function isValidMessageArray(value: unknown): value is StoredChatMessage[] {
   });
 }
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const userId = resolveUserId(req);
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -53,7 +53,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === "GET") {
     const templateKey = normalizeTemplateKey(req.query.templateKey);
-    const conversation = getConversation(userId, templateKey);
+    const conversation = await getConversation(userId, templateKey);
 
     if (!conversation) {
       return res.status(404).json({ conversation: null });
@@ -70,7 +70,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: "Invalid messages payload" });
     }
 
-    const conversation = upsertConversation(userId, templateKey, messages);
+    const conversation = await upsertConversation(userId, templateKey, messages);
     return res.status(200).json({ conversation });
   }
 

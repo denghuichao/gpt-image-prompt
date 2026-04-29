@@ -1,18 +1,41 @@
 {
   "plans": [
     {
+      "key": "free",
+      "name_zh": "免费版",
+      "name_en": "Free",
+      "label_zh": "永久免费",
+      "label_en": "forever",
+      "price_usd": 0,
+      "credits": 0,
+      "highlight": false,
+      "creem_product_id": "",
+      "features_zh": [
+        "浏览全部 Prompt 模板",
+        "按标签 / 标题 / 描述 / Prompt 搜索",
+        "查看模板详情与示例图",
+        "无需支付"
+      ],
+      "features_en": [
+        "Browse all prompt templates",
+        "Search by tags / title / description / prompt",
+        "View template details and sample images",
+        "No payment required"
+      ]
+    },
+     {
       "key": "starter",
       "name_zh": "入门积分包",
       "name_en": "Starter Pack",
       "label_zh": "一次性购买",
       "label_en": "one-time",
-      "price_usd": 9.9,
-      "credits": 100,
-      "highlight": true,
+      "price_usd": 4.9,
+      "credits": 50,
+      "highlight": false,
       "creem_product_id": "prod_2oqbwUbrbJIsNehobyytCS",
       "features_zh": [
         "包含免费版全部功能",
-        "100 积分",
+        "50 积分",
         "每次生图消耗 1 积分",
         "支持 Gemini 与 GPT Image",
         "支持参考图输入",
@@ -21,7 +44,36 @@
       ],
       "features_en": [
         "Everything in Free",
-        "100 credits",
+        "50 credits",
+        "1 credit per image generation",
+        "Gemini + GPT Image support",
+        "Reference-image input support",
+        "Conversation history",
+        "All aspect ratios and quality levels"
+      ]
+    },
+    {
+      "key": "lite",
+      "name_zh": "入门积分包",
+      "name_en": "Lite Pack",
+      "label_zh": "一次性购买",
+      "label_en": "one-time",
+      "price_usd": 9.9,
+      "credits": 120,
+      "highlight": true,
+      "creem_product_id": "prod_3d69BCJurpnHPGvNrBdBZE",
+      "features_zh": [
+        "包含免费版全部功能",
+        "120 积分",
+        "每次生图消耗 1 积分",
+        "支持 Gemini 与 GPT Image",
+        "支持参考图输入",
+        "保存对话历史",
+        "支持全部画幅比例与质量档位"
+      ],
+      "features_en": [
+        "Everything in Free",
+        "120 credits",
         "1 credit per image generation",
         "Gemini + GPT Image support",
         "Reference-image input support",
@@ -36,12 +88,12 @@
       "label_zh": "一次性购买",
       "label_en": "one-time",
       "price_usd": 29.9,
-      "credits": 400,
+      "credits": 500,
       "highlight": false,
       "creem_product_id": "prod_4DKAtjY2D4zMYtsofFxfAX",
       "features_zh": [
         "包含入门包全部功能",
-        "400 积分",
+        "500 积分",
         "每次生图消耗 1 积分",
         "支持 Gemini 与 GPT Image",
         "支持参考图输入",
@@ -50,7 +102,7 @@
       ],
       "features_en": [
         "Everything in Starter",
-        "400 credits",
+        "500 credits",
         "1 credit per image generation",
         "Gemini + GPT Image support",
         "Reference-image input support",

@@ -1,8 +1,8 @@
-import type { NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { SignInButton, useAuth } from "@clerk/nextjs";
-import { SparklesIcon, UserIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon, SparklesIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
@@ -575,16 +575,32 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                         {msg.images && msg.images.length > 0 && (
                           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {msg.images.map((src, idx) => (
-                              <button
+                              <div
                                 key={`${msg.id}-img-${idx}`}
-                                type="button"
-                                onClick={() => setActiveGeneratedPreview(src)}
-                                className="overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
+                                className="relative overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
                               >
-                                {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={src} alt={`Generated preview ${idx + 1}`} className="h-auto w-full object-cover" />
-                              </button>
+                                <button type="button" onClick={() => setActiveGeneratedPreview(src)} className="block w-full text-left">
+                                  {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={src} alt={`Generated preview ${idx + 1}`} className="h-auto w-full object-cover" />
+                                </button>
+                                <span className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-night-950/75 to-transparent" />
+                                <span className="absolute bottom-2 left-2 text-[10px] text-night-200">
+                                  {locale === "en" ? "Click to preview" : "点击预览"}
+                                </span>
+                                <span className="absolute bottom-2 right-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => { void handleDownloadImage(src); }}
+                                    className="inline-flex items-center rounded-full border border-night-500 bg-night-900/90 px-2 py-0.5 text-[10px] text-night-100 transition hover:border-night-300"
+                                  >
+                                    <span className="inline-flex items-center gap-1">
+                                      <ArrowDownTrayIcon className="h-2.5 w-2.5" />
+                                      {locale === "en" ? "Download" : "下载"}
+                                    </span>
+                                  </button>
+                                </span>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -661,7 +677,10 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
               aria-label={locale === "en" ? "Download image" : "下载图片"}
               disabled={isDownloadingImage}
             >
-              {isDownloadingImage ? (locale === "en" ? "Downloading..." : "下载中...") : (locale === "en" ? "Download" : "下载")}
+              <span className="inline-flex items-center gap-1">
+                <ArrowDownTrayIcon className="h-3 w-3" />
+                {isDownloadingImage ? (locale === "en" ? "Downloading..." : "下载中...") : (locale === "en" ? "Download" : "下载")}
+              </span>
             </button>
             <button
               type="button"
@@ -682,6 +701,6 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
 
 export default BuildPage;
 
-export async function getStaticProps() {
-  return { props: { templates: getPromptTemplates() } };
+export const getServerSideProps: GetServerSideProps = async () => {
+  return { props: { templates: await getPromptTemplates() } };
 }

@@ -26,6 +26,6 @@ export default async function handler(
   }
 
   const userId = resolveUserId(req);
-  const credits = getCredits(userId);
+  const credits = await getCredits(userId);
   return res.status(200).json({ credits });
 }

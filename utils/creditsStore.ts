@@ -1,60 +1,18 @@
-import db from "./sqlite";
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS user_credits (
-    user_id TEXT PRIMARY KEY,
-    balance INTEGER NOT NULL DEFAULT 0,
-    total_bought INTEGER NOT NULL DEFAULT 0,
-    total_used INTEGER NOT NULL DEFAULT 0,
-    updated_at INTEGER NOT NULL,
-    created_at INTEGER NOT NULL
-  )
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS credit_transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    delta INTEGER NOT NULL,
-    reason TEXT NOT NULL,
-    meta TEXT,
-    created_at INTEGER NOT NULL
-  )
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS creem_webhook_events (
-    event_id TEXT PRIMARY KEY,
-    event_type TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  )
-`);
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS purchase_orders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT NOT NULL,
-    plan_key TEXT NOT NULL,
-    product_id TEXT NOT NULL,
-    credits INTEGER NOT NULL,
-    request_id TEXT NOT NULL UNIQUE,
-    checkout_id TEXT,
-    order_id TEXT,
-    customer_id TEXT,
-    status TEXT NOT NULL,
-    meta TEXT,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL
-  )
-`);
+import { supabaseAdmin } from "./supabase";
 
 type CreditRow = {
   user_id: string;
   balance: number;
   total_bought: number;
   total_used: number;
-  updated_at: number;
-  created_at: number;
+  updated_at: string;
+  created_at: string;
+};
+
+type ProcessedEventRow = {
+  event_id: string;
+  event_type: string;
+  created_at: string;
 };
 
 type PurchaseOrderRow = {
@@ -68,96 +26,55 @@ type PurchaseOrderRow = {
   order_id: string | null;
   customer_id: string | null;
   status: string;
-  meta: string | null;
-  created_at: number;
-  updated_at: number;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type PurchaseOrder = PurchaseOrderRow;
 
-const selectCredits = db.prepare(
-  `SELECT * FROM user_credits WHERE user_id = ?`,
-);
+async function ensureUser(userId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("user_credits")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-const insertCredits = db.prepare(`
-  INSERT INTO user_credits (user_id, balance, total_bought, total_used, updated_at, created_at)
-  VALUES (?, 0, 0, 0, ?, ?)
-`);
+  if (error) throw new Error(`Failed to ensure user credits: ${error.message}`);
+  if (data) return;
 
-const addCreditsStmt = db.prepare(`
-  UPDATE user_credits
-  SET balance = balance + ?, total_bought = total_bought + ?, updated_at = ?
-  WHERE user_id = ?
-`);
-
-const deductCreditsStmt = db.prepare(`
-  UPDATE user_credits
-  SET balance = balance - ?, total_used = total_used + ?, updated_at = ?
-  WHERE user_id = ? AND balance >= ?
-`);
-
-const insertTransaction = db.prepare(`
-  INSERT INTO credit_transactions (user_id, delta, reason, meta, created_at)
-  VALUES (?, ?, ?, ?, ?)
-`);
-
-const insertWebhookEvent = db.prepare(
-  `INSERT INTO creem_webhook_events (event_id, event_type, created_at) VALUES (?, ?, ?)`,
-);
-
-const insertPurchaseOrderStmt = db.prepare(`
-  INSERT INTO purchase_orders (
-    user_id, plan_key, product_id, credits, request_id, status, meta, created_at, updated_at
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-`);
-
-const getPurchaseByRequestIdStmt = db.prepare(
-  `SELECT * FROM purchase_orders WHERE request_id = ?`,
-);
-
-const getPurchaseByCheckoutIdStmt = db.prepare(
-  `SELECT * FROM purchase_orders WHERE checkout_id = ?`,
-);
-
-const updatePurchaseFromCheckoutStmt = db.prepare(`
-  UPDATE purchase_orders
-  SET checkout_id = COALESCE(checkout_id, ?),
-      status = ?,
-      meta = ?,
-      updated_at = ?
-  WHERE request_id = ?
-`);
-
-const markPurchaseCompletedStmt = db.prepare(`
-  UPDATE purchase_orders
-  SET checkout_id = COALESCE(checkout_id, ?),
-      order_id = COALESCE(order_id, ?),
-      customer_id = COALESCE(customer_id, ?),
-      status = 'completed',
-      updated_at = ?
-  WHERE id = ?
-`);
-
-const markPurchaseFailedStmt = db.prepare(`
-  UPDATE purchase_orders
-  SET status = 'failed', meta = ?, updated_at = ?
-  WHERE request_id = ?
-`);
-
-function ensureUser(userId: string) {
-  const row = selectCredits.get(userId) as CreditRow | undefined;
-  if (!row) {
-    const now = Date.now();
-    insertCredits.run(userId, now, now);
+  const now = new Date().toISOString();
+  const { error: insertError } = await supabaseAdmin
+    .from("user_credits")
+    .insert({
+      user_id: userId,
+      balance: 0,
+      total_bought: 0,
+      total_used: 0,
+      created_at: now,
+      updated_at: now,
+    });
+  if (insertError) {
+    // Ignore unique conflict on race.
+    if (!insertError.message.toLowerCase().includes("duplicate")) {
+      throw new Error(`Failed to create user credits row: ${insertError.message}`);
+    }
   }
 }
 
-export function getCredits(userId: string) {
-  ensureUser(userId);
-  return selectCredits.get(userId) as CreditRow;
+export async function getCredits(userId: string) {
+  await ensureUser(userId);
+  const { data, error } = await supabaseAdmin
+    .from("user_credits")
+    .select("user_id,balance,total_bought,total_used,updated_at,created_at")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) throw new Error(`Failed to read credits: ${error.message}`);
+  return data as CreditRow;
 }
 
-export function topUpCredits(
+export async function topUpCredits(
   userId: string,
   credits: number,
   reason: string,
@@ -166,22 +83,36 @@ export function topUpCredits(
   if (!Number.isFinite(credits) || credits <= 0) {
     throw new Error("credits must be > 0");
   }
-  ensureUser(userId);
 
-  const now = Date.now();
-  addCreditsStmt.run(credits, credits, now, userId);
-  insertTransaction.run(
-    userId,
-    credits,
-    reason,
-    meta ? JSON.stringify(meta) : null,
-    now,
-  );
+  const current = await getCredits(userId);
+  const now = new Date().toISOString();
+  const next = {
+    balance: current.balance + credits,
+    total_bought: current.total_bought + credits,
+    updated_at: now,
+  };
+
+  const { error: updateError } = await supabaseAdmin
+    .from("user_credits")
+    .update(next)
+    .eq("user_id", userId);
+  if (updateError) throw new Error(`Failed to top up credits: ${updateError.message}`);
+
+  const { error: txError } = await supabaseAdmin
+    .from("credit_transactions")
+    .insert({
+      user_id: userId,
+      delta: credits,
+      reason,
+      meta: meta ?? null,
+      created_at: now,
+    });
+  if (txError) throw new Error(`Failed to write credit transaction: ${txError.message}`);
 
   return getCredits(userId);
 }
 
-export function topUpCreditsOnceByEvent(
+export async function topUpCreditsOnceByEvent(
   eventId: string,
   eventType: string,
   userId: string,
@@ -189,38 +120,37 @@ export function topUpCreditsOnceByEvent(
   reason: string,
   meta?: Record<string, unknown>,
 ) {
-  if (!eventId) {
-    throw new Error("eventId is required");
-  }
-  if (!Number.isFinite(credits) || credits <= 0) {
-    throw new Error("credits must be > 0");
+  if (!eventId) throw new Error("eventId is required");
+  if (!Number.isFinite(credits) || credits <= 0) throw new Error("credits must be > 0");
+
+  const { data: existing, error: readError } = await supabaseAdmin
+    .from("processed_events")
+    .select("event_id,event_type,created_at")
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (readError) throw new Error(`Failed to check processed event: ${readError.message}`);
+
+  if (existing) {
+    return { applied: false as const, credits: await getCredits(userId) };
   }
 
-  const run = (db as unknown as { transaction: <T>(fn: () => T) => () => T }).transaction(() => {
-    ensureUser(userId);
-    try {
-      insertWebhookEvent.run(eventId, eventType, Date.now());
-    } catch {
-      return { applied: false as const, credits: getCredits(userId) };
+  const now = new Date().toISOString();
+  const { error: insertEventError } = await supabaseAdmin
+    .from("processed_events")
+    .insert({ event_id: eventId, event_type: eventType, created_at: now } as ProcessedEventRow);
+
+  if (insertEventError) {
+    if (insertEventError.message.toLowerCase().includes("duplicate")) {
+      return { applied: false as const, credits: await getCredits(userId) };
     }
+    throw new Error(`Failed to insert processed event: ${insertEventError.message}`);
+  }
 
-    const now = Date.now();
-    addCreditsStmt.run(credits, credits, now, userId);
-    insertTransaction.run(
-      userId,
-      credits,
-      reason,
-      meta ? JSON.stringify(meta) : null,
-      now,
-    );
-
-    return { applied: true as const, credits: getCredits(userId) };
-  });
-
-  return run();
+  const updated = await topUpCredits(userId, credits, reason, meta);
+  return { applied: true as const, credits: updated };
 }
 
-export function deductCredit(
+export async function deductCredit(
   userId: string,
   credits = 1,
   reason = "image_generation",
@@ -229,40 +159,60 @@ export function deductCredit(
   if (!Number.isFinite(credits) || credits <= 0) {
     throw new Error("credits must be > 0");
   }
-  ensureUser(userId);
 
-  const now = Date.now();
-  const result = deductCreditsStmt.run(credits, credits, now, userId, credits);
-  if (result.changes === 0) {
+  const current = await getCredits(userId);
+  if (current.balance < credits) {
     throw new Error("insufficient_credits");
   }
-  insertTransaction.run(
-    userId,
-    -credits,
-    reason,
-    meta ? JSON.stringify(meta) : null,
-    now,
-  );
+
+  const now = new Date().toISOString();
+  const { error: updateError } = await supabaseAdmin
+    .from("user_credits")
+    .update({
+      balance: current.balance - credits,
+      total_used: current.total_used + credits,
+      updated_at: now,
+    })
+    .eq("user_id", userId)
+    .gte("balance", credits);
+
+  if (updateError) throw new Error(`Failed to deduct credits: ${updateError.message}`);
+
+  const { error: txError } = await supabaseAdmin
+    .from("credit_transactions")
+    .insert({
+      user_id: userId,
+      delta: -credits,
+      reason,
+      meta: meta ?? null,
+      created_at: now,
+    });
+  if (txError) throw new Error(`Failed to write credit transaction: ${txError.message}`);
+
   return getCredits(userId);
 }
 
-export function isCreemEventProcessed(eventId: string) {
-  const row = db
-    .prepare(`SELECT event_id FROM creem_webhook_events WHERE event_id = ?`)
-    .get(eventId) as { event_id: string } | undefined;
-  return Boolean(row);
+export async function isCreemEventProcessed(eventId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("processed_events")
+    .select("event_id")
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to check event processed: ${error.message}`);
+  return Boolean(data);
 }
 
-export function markCreemEventProcessed(eventId: string, eventType: string) {
-  try {
-    insertWebhookEvent.run(eventId, eventType, Date.now());
-    return true;
-  } catch {
-    return false;
-  }
+export async function markCreemEventProcessed(eventId: string, eventType: string) {
+  const now = new Date().toISOString();
+  const { error } = await supabaseAdmin
+    .from("processed_events")
+    .upsert({ event_id: eventId, event_type: eventType, created_at: now }, { onConflict: "event_id" });
+
+  return !error;
 }
 
-export function createPurchaseOrder(input: {
+export async function createPurchaseOrder(input: {
   userId: string;
   planKey: string;
   productId: string;
@@ -270,67 +220,102 @@ export function createPurchaseOrder(input: {
   requestId: string;
   meta?: Record<string, unknown>;
 }) {
-  const now = Date.now();
-  insertPurchaseOrderStmt.run(
-    input.userId,
-    input.planKey,
-    input.productId,
-    input.credits,
-    input.requestId,
-    "created",
-    input.meta ? JSON.stringify(input.meta) : null,
-    now,
-    now,
-  );
+  const now = new Date().toISOString();
+  const { error } = await supabaseAdmin
+    .from("purchase_orders")
+    .insert({
+      user_id: input.userId,
+      plan_key: input.planKey,
+      product_id: input.productId,
+      credits: input.credits,
+      request_id: input.requestId,
+      status: "created",
+      meta: input.meta ?? null,
+      created_at: now,
+      updated_at: now,
+    });
+
+  if (error) throw new Error(`Failed to create purchase order: ${error.message}`);
 }
 
-export function markPurchaseCheckoutCreated(
+export async function markPurchaseCheckoutCreated(
   requestId: string,
   input: { checkoutId?: string | null; meta?: Record<string, unknown> },
 ) {
-  const now = Date.now();
-  updatePurchaseFromCheckoutStmt.run(
-    input.checkoutId ?? null,
-    "checkout_created",
-    input.meta ? JSON.stringify(input.meta) : null,
-    now,
-    requestId,
-  );
+  const now = new Date().toISOString();
+  const { error } = await supabaseAdmin
+    .from("purchase_orders")
+    .update({
+      checkout_id: input.checkoutId ?? null,
+      status: "checkout_created",
+      meta: input.meta ?? null,
+      updated_at: now,
+    })
+    .eq("request_id", requestId);
+
+  if (error) throw new Error(`Failed to mark checkout created: ${error.message}`);
 }
 
-export function markPurchaseFailed(requestId: string, meta?: Record<string, unknown>) {
-  markPurchaseFailedStmt.run(
-    meta ? JSON.stringify(meta) : null,
-    Date.now(),
-    requestId,
-  );
+export async function markPurchaseFailed(requestId: string, meta?: Record<string, unknown>) {
+  const now = new Date().toISOString();
+  const { error } = await supabaseAdmin
+    .from("purchase_orders")
+    .update({
+      status: "failed",
+      meta: meta ?? null,
+      updated_at: now,
+    })
+    .eq("request_id", requestId);
+
+  if (error) throw new Error(`Failed to mark purchase failed: ${error.message}`);
 }
 
-export function getPurchaseOrderForConfirm(input: {
+export async function getPurchaseOrderForConfirm(input: {
   checkoutId?: string;
   requestId?: string;
 }) {
-  let row: PurchaseOrderRow | undefined;
   if (input.checkoutId) {
-    row = getPurchaseByCheckoutIdStmt.get(input.checkoutId) as PurchaseOrderRow | undefined;
+    const { data, error } = await supabaseAdmin
+      .from("purchase_orders")
+      .select("id,user_id,plan_key,product_id,credits,request_id,checkout_id,order_id,customer_id,status,meta,created_at,updated_at")
+      .eq("checkout_id", input.checkoutId)
+      .maybeSingle();
+
+    if (error) throw new Error(`Failed to read purchase by checkoutId: ${error.message}`);
+    if (data) return data as PurchaseOrder;
   }
-  if (!row && input.requestId) {
-    row = getPurchaseByRequestIdStmt.get(input.requestId) as PurchaseOrderRow | undefined;
+
+  if (input.requestId) {
+    const { data, error } = await supabaseAdmin
+      .from("purchase_orders")
+      .select("id,user_id,plan_key,product_id,credits,request_id,checkout_id,order_id,customer_id,status,meta,created_at,updated_at")
+      .eq("request_id", input.requestId)
+      .maybeSingle();
+
+    if (error) throw new Error(`Failed to read purchase by requestId: ${error.message}`);
+    if (data) return data as PurchaseOrder;
   }
-  return (row as PurchaseOrder | undefined) ?? null;
+
+  return null;
 }
 
-export function markPurchaseCompletedById(input: {
+export async function markPurchaseCompletedById(input: {
   id: number;
   checkoutId?: string | null;
   orderId?: string | null;
   customerId?: string | null;
 }) {
-  markPurchaseCompletedStmt.run(
-    input.checkoutId ?? null,
-    input.orderId ?? null,
-    input.customerId ?? null,
-    Date.now(),
-    input.id,
-  );
+  const now = new Date().toISOString();
+  const { error } = await supabaseAdmin
+    .from("purchase_orders")
+    .update({
+      checkout_id: input.checkoutId ?? null,
+      order_id: input.orderId ?? null,
+      customer_id: input.customerId ?? null,
+      status: "completed",
+      updated_at: now,
+    })
+    .eq("id", input.id);
+
+  if (error) throw new Error(`Failed to mark purchase completed: ${error.message}`);
 }

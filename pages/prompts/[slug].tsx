@@ -1,4 +1,4 @@
-import type { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +8,6 @@ import CopyButton from "../../components/CopyButton";
 import { resolveLocale, t } from "../../utils/i18n";
 import {
   getPromptTemplateBySlug,
-  getPromptTemplates,
   type PromptTemplate,
 } from "../../utils/promptTemplates";
 
@@ -231,19 +230,9 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
 
 export default PromptDetailPage;
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  return {
-    paths: getPromptTemplates().flatMap((template) => [
-      { params: { slug: template.slug }, locale: "zh" },
-      { params: { slug: template.slug }, locale: "en" },
-    ]),
-    fallback: false,
-  };
-};
-
-export const getStaticProps: GetStaticProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const slug = String(context.params?.slug || "");
-  const template = getPromptTemplateBySlug(slug);
+  const template = await getPromptTemplateBySlug(slug);
 
   if (!template) {
     return { notFound: true };

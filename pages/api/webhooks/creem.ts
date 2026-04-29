@@ -114,7 +114,7 @@ export default async function handler(
     req.headers["x-creem-event-id"]?.toString() ??
     crypto.createHash("sha256").update(rawBody).digest("hex");
 
-  if (isCreemEventProcessed(eventId)) {
+  if (await isCreemEventProcessed(eventId)) {
     return res.status(200).json({ received: true, duplicate: true });
   }
 
@@ -126,11 +126,11 @@ export default async function handler(
 
     if (!userId || credits <= 0) {
       console.warn("Creem webhook: missing userId or credits in metadata", object.metadata);
-      markCreemEventProcessed(eventId, eventType);
+      await markCreemEventProcessed(eventId, eventType);
       return res.status(200).json({ received: true });
     }
 
-    topUpCreditsOnceByEvent(
+    await topUpCreditsOnceByEvent(
       `checkout:${object.id ?? eventId}`,
       eventType,
       userId,
@@ -149,6 +149,6 @@ export default async function handler(
     );
   }
 
-  markCreemEventProcessed(eventId, eventType);
+  await markCreemEventProcessed(eventId, eventType);
   return res.status(200).json({ received: true });
 }

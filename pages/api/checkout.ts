@@ -52,7 +52,7 @@ export default async function handler(
 
   const requestId = `checkout_${userId}_${plan.key}_${Date.now()}`;
 
-  createPurchaseOrder({
+  await createPurchaseOrder({
     userId,
     planKey: plan.key,
     productId: plan.creem_product_id,
@@ -83,12 +83,12 @@ export default async function handler(
 
   if (!creemRes.ok) {
     const text = await creemRes.text();
-    markPurchaseFailed(requestId, { source: "creem_create_checkout", error: text });
+    await markPurchaseFailed(requestId, { source: "creem_create_checkout", error: text });
     return res.status(502).json({ error: `Creem error: ${text}` });
   }
 
   const data = await creemRes.json() as { checkout_url?: string; id?: string };
-  markPurchaseCheckoutCreated(requestId, {
+  await markPurchaseCheckoutCreated(requestId, {
     checkoutId: data.id,
     meta: { checkoutUrl: data.checkout_url ?? null },
   });

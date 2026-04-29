@@ -1,8 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { randomUUID } from "crypto";
 import { deductCredit, getCredits } from "../../utils/creditsStore";
+import {
+  supabaseAdmin,
+  SUPABASE_GENERATED_IMAGES_BUCKET,
+} from "../../utils/supabase";
 
 function resolveUserId(req: NextApiRequest): string | null {
   const hasClerk = Boolean(
@@ -132,12 +135,26 @@ async function generateWithGpt(
       : mime.includes("webp")
         ? "webp"
         : "png";
-    const fileName = `gen_${Date.now()}_${idx}.${ext}`;
-    const relPath = path.join("generated", fileName);
-    const absPath = path.join(process.cwd(), "public", relPath);
-    await fs.mkdir(path.dirname(absPath), { recursive: true });
-    await fs.writeFile(absPath, Buffer.from(raw, "base64"));
-    return `/${relPath.replace(/\\/g, "/")}`;
+    const filePath = `${new Date().toISOString().slice(0, 10)}/gen_${Date.now()}_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
+    const bytes = Buffer.from(raw, "base64");
+    const { error: uploadError } = await supabaseAdmin
+      .storage
+      .from(SUPABASE_GENERATED_IMAGES_BUCKET)
+      .upload(filePath, bytes, {
+        contentType: mime,
+        upsert: false,
+      });
+    if (uploadError) {
+      throw new Error(`Failed to upload generated image: ${uploadError.message}`);
+    }
+    const { data } = supabaseAdmin
+      .storage
+      .from(SUPABASE_GENERATED_IMAGES_BUCKET)
+      .getPublicUrl(filePath);
+    if (!data?.publicUrl) {
+      throw new Error("Failed to resolve generated image public URL");
+    }
+    return data.publicUrl;
   }
 
   const results: string[] = [];
@@ -182,7 +199,7 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const credits = getCredits(userId);
+  const credits = await getCredits(userId);
   if (!credits || credits.balance < 1) {
     return res.status(402).json({
       error:
@@ -202,7 +219,7 @@ export default async function handler(
       return res.status(502).json({ error: "No images returned from model" });
     }
 
-    const updated = deductCredit(userId, 1, "image_generation", { model: "gpt-image-2", ratio });
+    const updated = await deductCredit(userId, 1, "image_generation", { model: "gpt-image-2", ratio });
     // eslint-disable-next-line no-console
     console.log("[/api/generate] success", JSON.stringify({
       userId,

@@ -1,0 +1,24 @@
+{
+  "templates": [
+    {
+      "slug": "xiaoxi-blueprint-demo",
+      "title": "湘西吊脚楼蓝图演绎",
+      "desc": "将建筑主体与技术蓝图叠加的高真实度影像模板",
+      "prompt_template": "Create a professional realistic photo of {subject}. Use {lighting} lighting. Background: {background}. Add technical blueprint overlays with white lines, arrows, dimensions, labels, and mini diagrams.",
+      "tags": ["architecture", "blueprint", "photoreal"],
+      "author": "MrLarus",
+      "source_url": "https://x.com/MrLarus/status/2046627021674168640",
+      "style": "Blueprint Realism",
+      "final_prompt": "Create a professional realistic photo of Xiangxi stilted building. Use golden-hour lighting. Background: dark green bokeh. Add technical blueprint overlays with white lines, arrows, dimensions, labels, and mini diagrams.",
+      "variables": [
+        { "key": "subject", "description": "主物体", "example": "Xiangxi stilted building" },
+        { "key": "lighting", "description": "光照条件", "example": "golden-hour" },
+        { "key": "background", "description": "背景描述", "example": "dark green bokeh" }
+      ],
+      "images": [
+        "https://pbs.twimg.com/media/EXAMPLE_1.jpg",
+        "https://pbs.twimg.com/media/EXAMPLE_2.jpg"
+      ]
+    }
+  ]
+}

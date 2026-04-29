@@ -1,3 +1,13 @@
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+let supabaseHostname = "";
+if (supabaseUrl) {
+  try {
+    supabaseHostname = new URL(supabaseUrl).hostname;
+  } catch {
+    supabaseHostname = "";
+  }
+}
+
 module.exports = {
   i18n: {
     locales: ["zh", "en"],
@@ -26,6 +36,10 @@ module.exports = {
         protocol: "https",
         hostname: "webstatic.aiproxy.vip",
       },
+      ...(supabaseHostname ? [{
+        protocol: "https",
+        hostname: supabaseHostname,
+      }] : []),
     ],
   },
 };

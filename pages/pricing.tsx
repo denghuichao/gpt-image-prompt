@@ -168,41 +168,17 @@ const PricingPage: NextPage = () => {
     }
   }
 
-  const freeTier = {
-    key: "free",
-    label: isEn ? "forever" : "永久免费",
-    title: isEn ? "Free" : "免费版",
-    price: "$0",
-    items: isEn
-      ? [
-          "Browse all prompt templates",
-          "Search by tags / title / description / prompt",
-          "View template details and sample images",
-          "No payment required",
-        ]
-      : [
-          "浏览全部 Prompt 模板",
-          "按标签 / 标题 / 描述 / Prompt 搜索",
-          "查看模板详情与示例图",
-          "无需支付",
-        ],
-    highlight: false,
-    creem_product_id: null as null | string,
-  };
-
-  const paidTiers = pricingConfig.plans.map((plan) => ({
+  const tiers = pricingConfig.plans.map((plan) => ({
     key: plan.key,
     label: isEn ? plan.label_en : plan.label_zh,
     title: isEn ? plan.name_en : plan.name_zh,
-    price: `$${plan.price_usd}`,
+    price: plan.price_usd === 0 ? "$0" : `$${plan.price_usd}`,
     highlight: plan.highlight,
     creem_product_id: plan.creem_product_id,
     items: (isEn ? plan.features_en : plan.features_zh) && (isEn ? plan.features_en : plan.features_zh).length > 0
       ? (isEn ? plan.features_en : plan.features_zh)
       : (isEn ? ["Plan features to be configured"] : ["请在 pricing.json 中配置套餐功能"]),
   }));
-
-  const tiers = [freeTier, ...paidTiers];
 
   return (
     <>
@@ -257,7 +233,7 @@ const PricingPage: NextPage = () => {
           )}
         </div>
 
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="mx-auto grid max-w-[1680px] grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {tiers.map((tier) => (
             <article
               key={tier.key}

@@ -111,7 +111,7 @@ export default async function handler(
     return res.status(400).json({ error: "checkout_id missing in callback" });
   }
 
-  const purchase = getPurchaseOrderForConfirm({
+  const purchase = await getPurchaseOrderForConfirm({
     checkoutId: callbackCheckoutId,
     requestId: callbackRequestId,
   });
@@ -204,7 +204,7 @@ export default async function handler(
   }
 
   const creditsToAdd = purchase.credits;
-  const result = topUpCreditsOnceByEvent(
+  const result = await topUpCreditsOnceByEvent(
     `checkout:${checkout.id}`,
     "checkout.confirmed",
     purchase.user_id,
@@ -223,7 +223,7 @@ export default async function handler(
     },
   );
 
-  markPurchaseCompletedById({
+  await markPurchaseCompletedById({
     id: purchase.id,
     checkoutId: checkout.id ?? callbackCheckoutId,
     orderId: checkout.order?.id ?? callbackOrderId,
