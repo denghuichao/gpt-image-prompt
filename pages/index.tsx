@@ -8,6 +8,8 @@ import path from "path";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
+import pricingConfig from "../config/pricing.json";
+import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
 
 const SHUFFLE_BATCH_SIZE = 12;
 const SHUFFLE_INTERVAL_MS = 20000;
@@ -19,6 +21,17 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
   const c = dict.landing;
+  const isEn = locale === "en";
+  const seoDescription = isEn
+    ? "AI Image Prompt Hub for GPT Image 2 (GTP image 2) and Nano Banana workflows. Discover structured prompt templates, searchable gallery, and professional build flow."
+    : "AI Image Prompt Hub，支持 GPT Image 2（GTP image 2）与 Nano Banana 热门生图工作流。提供结构化 Prompt 模板、可搜索画廊与专业化构建流程。";
+  const seoKeywords = isEn
+    ? "GPT Image 2, GTP image 2, Nano Banana, AI image prompt, prompt template, prompt gallery, image generation, prompt engineering"
+    : "GPT Image 2, GTP image 2, Nano Banana, AI 图像提示词, Prompt 模板, 提示词画廊, 生图, 提示词工程";
+  const localeTyped = isEn ? "en" : "zh";
+  const canonical = absoluteUrl("/", localeTyped);
+  const hreflangs = buildHrefLang("/");
+  const ogImage = absoluteUrl("/prompt_images/1.jpeg", localeTyped);
   const [visibleImages, setVisibleImages] = useState<string[]>(previewImages.slice(0, SHUFFLE_BATCH_SIZE));
   const [shuffleState, setShuffleState] = useState<"idle" | "out" | "in-prep" | "in">("idle");
 
@@ -78,7 +91,48 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
     <>
       <Head>
         <title>{dict.home.title}</title>
-        <meta name="description" content={dict.home.description} />
+        <meta name="description" content={seoDescription} />
+        <meta name="keywords" content={seoKeywords} />
+        <link rel="canonical" href={canonical} />
+        {hreflangs.map((item) => (
+          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
+        ))}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="AI Image Prompt Hub" />
+        <meta property="og:title" content={dict.home.title} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={dict.home.title} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={ogImage} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "AI Image Prompt Hub",
+              url: absoluteUrl("/", "zh"),
+              inLanguage: ["zh-CN", "en"],
+              description: seoDescription,
+              keywords: seoKeywords,
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "AI Image Prompt Hub",
+              url: absoluteUrl("/", "zh"),
+              logo: ogImage,
+            }),
+          }}
+        />
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 sm:px-6 lg:px-8">
@@ -224,6 +278,70 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
                 <p className="mt-2 text-sm leading-relaxed text-night-500">{step.desc}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* ── 6. PRICING PREVIEW ─────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
+                {isEn ? "Credit Packs" : "积分套餐"}
+              </h2>
+              <p className="mt-2 text-sm text-night-400">
+                {isEn ? "Browse templates for free, buy credits only when you generate images." : "模板浏览免费，仅在生成图片时消耗积分。"}
+              </p>
+            </div>
+            <Link
+              href="/pricing"
+              locale={locale}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-night-600 px-5 py-2.5 text-sm font-semibold text-night-300 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50"
+            >
+              {isEn ? "View Full Pricing" : "查看完整定价"}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {pricingConfig.plans.map((plan) => {
+              const title = isEn ? plan.name_en : plan.name_zh;
+              const label = isEn ? plan.label_en : plan.label_zh;
+              const features = (isEn ? plan.features_en : plan.features_zh);
+              return (
+                <article
+                  key={plan.key}
+                  className={`relative flex flex-col overflow-hidden rounded-2xl p-6 ${
+                    plan.highlight
+                      ? "border border-glow-500/30 bg-night-900/70 shadow-[0_0_64px_rgba(251,191,36,0.08)]"
+                      : "card-glow border border-night-700 bg-night-900/70"
+                  }`}
+                >
+                  {plan.highlight && (
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(ellipse_at_top_right,rgba(251,191,36,0.07),transparent_60%)]" />
+                  )}
+
+                  <p className={`font-mono text-[10px] uppercase tracking-[0.16em] ${plan.highlight ? "text-glow-400" : "text-night-500"}`}>
+                    {label}
+                  </p>
+                  {plan.highlight && (
+                    <span className="absolute right-4 top-4 rounded-full border border-glow-500/40 bg-glow-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-glow-300">
+                      {isEn ? "Recommended" : "推荐"}
+                    </span>
+                  )}
+                  <h3 className="mt-2 font-display text-2xl font-semibold italic text-night-50">{title}</h3>
+                  <p className={`mt-4 font-display text-5xl font-bold italic ${plan.highlight ? "text-glow-400" : "text-night-50"}`}>
+                    {plan.price_usd === 0 ? "$0" : `$${plan.price_usd}`}
+                  </p>
+                  <ul className={`mt-7 flex-1 space-y-3.5 border-t pt-6 ${plan.highlight ? "border-glow-500/20" : "border-night-700/60"}`}>
+                    {features.map((feature) => (
+                      <li key={`${plan.key}-${feature}`} className={`flex items-start gap-3 text-sm ${plan.highlight ? "text-night-200" : "text-night-300"}`}>
+                        <span className={`mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full ${plan.highlight ? "bg-glow-500" : "bg-night-500"}`} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              );
+            })}
           </div>
         </section>
 

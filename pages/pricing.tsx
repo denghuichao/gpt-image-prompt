@@ -7,12 +7,16 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 import pricingConfig from "../config/pricing.json";
+import { absoluteUrl, buildHrefLang } from "../utils/seo";
 
 const PricingPage: NextPage = () => {
   const router = useRouter();
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const { isLoaded, isSignedIn } = useAuth();
   const locale = resolveLocale(router.locale);
+  const localeTyped = locale === "en" ? "en" : "zh";
+  const canonical = absoluteUrl("/pricing", localeTyped);
+  const hreflangs = buildHrefLang("/pricing");
   const dict = t(locale);
   const isEn = locale === "en";
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -184,6 +188,14 @@ const PricingPage: NextPage = () => {
     <>
       <Head>
         <title>{isEn ? "Pricing | AI Image Prompt Hub" : "定价 | AI Image Prompt Hub"}</title>
+        <meta
+          name="description"
+          content={isEn ? "Buy one-time credit packs for AI image generation. Prompt browsing remains free." : "购买一次性积分包用于 AI 生图。Prompt 模板浏览永久免费。"}
+        />
+        <link rel="canonical" href={canonical} />
+        {hreflangs.map((item) => (
+          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
+        ))}
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 py-16 sm:px-6 lg:px-8">

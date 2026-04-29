@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 import type { PromptTemplate } from "../utils/promptTemplates";
+import { absoluteUrl, buildHrefLang } from "../utils/seo";
 
 const PAGE_SIZE = 24;
 
@@ -26,6 +27,9 @@ function mergeBySlug(prev: PromptTemplate[], next: PromptTemplate[]) {
 const GalleryPage: NextPage = () => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
+  const localeTyped = locale === "en" ? "en" : "zh";
+  const canonical = absoluteUrl("/gallery", localeTyped);
+  const hreflangs = buildHrefLang("/gallery");
   const dict = t(locale);
   const query = typeof router.query.q === "string" ? router.query.q : "";
   const normalizedQuery = useMemo(() => query.trim(), [query]);
@@ -105,6 +109,10 @@ const GalleryPage: NextPage = () => {
       <Head>
         <title>{dict.gallery.title}</title>
         <meta name="description" content={dict.gallery.description} />
+        <link rel="canonical" href={canonical} />
+        {hreflangs.map((item) => (
+          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
+        ))}
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">

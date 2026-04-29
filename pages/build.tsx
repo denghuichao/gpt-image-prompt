@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
+import { absoluteUrl, buildHrefLang } from "../utils/seo";
 const ASPECT_RATIOS = ["auto", "21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"] as const;
 
 type ChatMessage = {
@@ -71,6 +72,9 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
   const locale = resolveLocale(router.locale);
+  const localeTyped = locale === "en" ? "en" : "zh";
+  const canonical = absoluteUrl("/build", localeTyped);
+  const hreflangs = buildHrefLang("/build");
   const dict = t(locale);
   const templateSlug = typeof router.query.template === "string" ? router.query.template : "";
   const isTemplateMode = Boolean(templateSlug);
@@ -343,6 +347,10 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       <Head>
         <title>{dict.build.title}</title>
         <meta name="description" content={dict.build.description} />
+        <link rel="canonical" href={canonical} />
+        {hreflangs.map((item) => (
+          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
+        ))}
       </Head>
 
       <main className="mx-auto h-[calc(100vh-72px)] max-w-[1960px] px-4 py-4 sm:px-6 lg:px-8">

@@ -289,7 +289,7 @@ export default function SiteHeader() {
                   key={item.href}
                   href={item.href}
                   locale={locale}
-                  className={`rounded-full px-4 py-1.5 text-sm transition ${
+                  className={`rounded-full px-4 py-1.5 text-base transition ${
                     isActive
                       ? "bg-glow-500/15 text-glow-300 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]"
                       : "text-night-400 hover:bg-night-800 hover:text-night-200"

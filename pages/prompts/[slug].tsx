@@ -10,12 +10,18 @@ import {
   getPromptTemplateBySlug,
   type PromptTemplate,
 } from "../../utils/promptTemplates";
+import { absoluteUrl, buildHrefLang, safeJsonLd } from "../../utils/seo";
 
 const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
+  const localeTyped = locale === "en" ? "en" : "zh";
   const dict = t(locale);
   const images = template.images;
+  const path = `/prompts/${template.slug}`;
+  const canonical = absoluteUrl(path, localeTyped);
+  const hreflangs = buildHrefLang(path);
+  const ogImage = template.images[0] || absoluteUrl("/prompt_images/1.jpeg", localeTyped);
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -46,6 +52,34 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
       <Head>
         <title>{`${template.title} ${dict.promptDetail.titleSuffix}`}</title>
         <meta name="description" content={template.desc} />
+        <link rel="canonical" href={canonical} />
+        {hreflangs.map((item) => (
+          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
+        ))}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={`${template.title} ${dict.promptDetail.titleSuffix}`} />
+        <meta property="og:description" content={template.desc} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${template.title} ${dict.promptDetail.titleSuffix}`} />
+        <meta name="twitter:description" content={template.desc} />
+        <meta name="twitter:image" content={ogImage} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
+              "@context": "https://schema.org",
+              "@type": "CreativeWork",
+              name: template.title,
+              description: template.desc,
+              url: canonical,
+              image: template.images,
+              author: { "@type": "Person", name: template.author },
+              keywords: template.tags.join(", "),
+            }),
+          }}
+        />
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
