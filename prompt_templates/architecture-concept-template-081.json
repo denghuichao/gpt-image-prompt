@@ -1,0 +1,61 @@
+{
+  "title": "Architecture Concept Template 081",
+  "desc": "Reusable architecture concept prompt for generating consistent visual outputs with a high-energy and dynamic tone.",
+  "prompt_template": "Create a {visual_style} image of {subject} in {location}. Use {lens} framing, {lighting} setup, and a {palette} color palette. Keep composition optimized for {output_format} and preserve a {mood} mood.",
+  "images": [
+    "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": [
+    "architecture",
+    "ai-prompt",
+    "template",
+    "image-gen"
+  ],
+  "author": "AI Image Prompt Hub Team",
+  "source_url": "https://aiimageprompthub.local/templates",
+  "style": "Architecture Concept",
+  "final_prompt": "Create a photorealistic architecture concept image of a fantasy character with cloak in a quiet cafe interior. Use 24mm wide framing, studio three-point lighting, and neutral beige and charcoal color treatment. Output for 4:5 social media crop while maintaining a high-energy and dynamic emotional tone.",
+  "variables": [
+    {
+      "key": "visual_style",
+      "description": "Visual rendering style",
+      "example": "photorealistic"
+    },
+    {
+      "key": "subject",
+      "description": "Main subject",
+      "example": "a fantasy character with cloak"
+    },
+    {
+      "key": "location",
+      "description": "Scene location",
+      "example": "quiet cafe interior"
+    },
+    {
+      "key": "lens",
+      "description": "Lens or framing language",
+      "example": "24mm wide"
+    },
+    {
+      "key": "lighting",
+      "description": "Lighting setup",
+      "example": "studio three-point lighting"
+    },
+    {
+      "key": "palette",
+      "description": "Color palette",
+      "example": "neutral beige and charcoal"
+    },
+    {
+      "key": "output_format",
+      "description": "Output aspect/crop",
+      "example": "4:5 social"
+    },
+    {
+      "key": "mood",
+      "description": "Overall mood",
+      "example": "high-energy and dynamic"
+    }
+  ]
+}

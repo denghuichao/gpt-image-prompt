@@ -1,0 +1,52 @@
+{
+  "title": "A Perfect Everyday Fit, Broken Down Piece by Piece",
+  "desc": "Deconstruct a full daily outfit into layered product-level notes while keeping a unified editorial mood.",
+  "prompt_template": "Create a {camera_style} image of {subject} in a {location}. Break down outfit with explicit notes for {top}, {bottom}, {outerwear}, {shoes}, and {accessory}. Keep color palette as {palette}. Add {lighting} and a subtle {mood} feeling.",
+  "images": [
+    "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": [
+    "fashion",
+    "street",
+    "editorial",
+    "product"
+  ],
+  "author": "thewardrobe.lab",
+  "source_url": "https://example.com/thewardrobe-lab",
+  "style": "Streetwear Editorial",
+  "final_prompt": "Create a 35mm documentary style image of a young woman leaning against a convenience store wall in Tokyo at blue hour. Break down outfit with explicit notes for cropped grey hoodie, washed black wide-leg jeans, oversized beige trench coat, white vintage running shoes, and silver chain shoulder bag. Keep color palette as muted earth tones with cool highlights. Add mixed neon-and-natural street lighting and a subtle calm confidence feeling.",
+  "variables": [
+    {
+      "key": "camera_style",
+      "description": "Camera language",
+      "example": "35mm documentary style"
+    },
+    {
+      "key": "subject",
+      "description": "Main character",
+      "example": "a young woman"
+    },
+    {
+      "key": "location",
+      "description": "Scene location",
+      "example": "Tokyo convenience store"
+    },
+    {
+      "key": "palette",
+      "description": "Color direction",
+      "example": "muted earth tones"
+    },
+    {
+      "key": "lighting",
+      "description": "Lighting setup",
+      "example": "mixed neon-and-natural street lighting"
+    },
+    {
+      "key": "mood",
+      "description": "Emotional tone",
+      "example": "calm confidence"
+    }
+  ],
+  "reference_image_count": 2
+}

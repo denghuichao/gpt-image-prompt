@@ -1,0 +1,14 @@
+{
+  "title": "Isometric City Builder Scene",
+  "desc": "Generate modular city-builder assets and hero scenes with readable zoning and lighting.",
+  "prompt_template": "Create an isometric {city_theme} district with {landmarks}. Render in {render_style} with {time_of_day} lighting. Emphasize modular blocks, traffic hints, and readable zoning colors.",
+  "images": [
+    "https://images.unsplash.com/photo-1461716834815-63b8d6f9f643?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": ["isometric", "game-art", "city", "stylized"],
+  "author": "game-art-pack",
+  "source_url": "https://example.com/game-art-pack",
+  "style": "Stylized 3D Isometric",
+  "final_prompt": "Create an isometric coastal cyberpunk district with floating tram station, vertical farms, and compact market roofs. Render in hand-painted stylized 3D with golden dusk lighting. Emphasize modular blocks, traffic hints, and readable zoning colors."
+}

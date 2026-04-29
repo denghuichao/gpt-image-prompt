@@ -1,0 +1,61 @@
+{
+  "title": "Food Photography Template 060",
+  "desc": "Reusable food photography prompt for generating consistent visual outputs with a playful and vibrant tone.",
+  "prompt_template": "Create a {visual_style} image of {subject} in {location}. Use {lens} framing, {lighting} setup, and a {palette} color palette. Keep composition optimized for {output_format} and preserve a {mood} mood.",
+  "images": [
+    "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": [
+    "food",
+    "ai-prompt",
+    "template",
+    "image-gen"
+  ],
+  "author": "AI Image Prompt Hub Team",
+  "source_url": "https://aiimageprompthub.local/templates",
+  "style": "Food Photography",
+  "final_prompt": "Create a photorealistic food photography image of a product hero object in a urban street. Use 85mm framing, golden hour backlight, and earthy brown and olive color treatment. Output for 4:5 social media crop while maintaining a playful and vibrant emotional tone.",
+  "variables": [
+    {
+      "key": "visual_style",
+      "description": "Visual rendering style",
+      "example": "photorealistic"
+    },
+    {
+      "key": "subject",
+      "description": "Main subject",
+      "example": "a product hero object"
+    },
+    {
+      "key": "location",
+      "description": "Scene location",
+      "example": "urban street"
+    },
+    {
+      "key": "lens",
+      "description": "Lens or framing language",
+      "example": "85mm"
+    },
+    {
+      "key": "lighting",
+      "description": "Lighting setup",
+      "example": "golden hour backlight"
+    },
+    {
+      "key": "palette",
+      "description": "Color palette",
+      "example": "earthy brown and olive"
+    },
+    {
+      "key": "output_format",
+      "description": "Output aspect/crop",
+      "example": "4:5 social"
+    },
+    {
+      "key": "mood",
+      "description": "Overall mood",
+      "example": "playful and vibrant"
+    }
+  ]
+}

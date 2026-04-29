@@ -1,0 +1,14 @@
+{
+  "title": "Cinematic Night Rain Portrait",
+  "desc": "Generate rain-soaked night portraits with reflective surfaces and high micro-contrast.",
+  "prompt_template": "Portrait of {subject} standing in {city} after rain. Use {lens} composition, {lighting}, wet pavement reflections, and {color_grade}. Add fine mist and shallow depth of field.",
+  "images": [
+    "https://images.unsplash.com/photo-1516302752625-fcc3c50ae61f?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": ["portrait", "cinematic", "rain", "neon"],
+  "author": "visual-recipe-lab",
+  "source_url": "https://example.com/visual-recipe-lab",
+  "style": "Neo-Noir Portrait",
+  "final_prompt": "Portrait of a lone cyclist standing in Seoul alley after rain. Use 85mm close composition, side-key magenta cyan practical lighting, wet pavement reflections, and high-contrast teal-orange cinematic color grade. Add fine mist and shallow depth of field."
+}

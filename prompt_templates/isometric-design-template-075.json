@@ -1,0 +1,61 @@
+{
+  "title": "Isometric Design Template 075",
+  "desc": "Reusable isometric design prompt for generating consistent visual outputs with a premium and elegant tone.",
+  "prompt_template": "Create a {visual_style} image of {subject} in {location}. Use {lens} framing, {lighting} setup, and a {palette} color palette. Keep composition optimized for {output_format} and preserve a {mood} mood.",
+  "images": [
+    "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "tags": [
+    "isometric",
+    "ai-prompt",
+    "template",
+    "image-gen"
+  ],
+  "author": "AI Image Prompt Hub Team",
+  "source_url": "https://aiimageprompthub.local/templates",
+  "style": "Isometric Design",
+  "final_prompt": "Create a photorealistic isometric design image of a confident young creator in a rain-soaked alley. Use 85mm framing, studio three-point lighting, and neutral beige and charcoal color treatment. Output for 4:5 social media crop while maintaining a premium and elegant emotional tone.",
+  "variables": [
+    {
+      "key": "visual_style",
+      "description": "Visual rendering style",
+      "example": "photorealistic"
+    },
+    {
+      "key": "subject",
+      "description": "Main subject",
+      "example": "a confident young creator"
+    },
+    {
+      "key": "location",
+      "description": "Scene location",
+      "example": "rain-soaked alley"
+    },
+    {
+      "key": "lens",
+      "description": "Lens or framing language",
+      "example": "85mm"
+    },
+    {
+      "key": "lighting",
+      "description": "Lighting setup",
+      "example": "studio three-point lighting"
+    },
+    {
+      "key": "palette",
+      "description": "Color palette",
+      "example": "neutral beige and charcoal"
+    },
+    {
+      "key": "output_format",
+      "description": "Output aspect/crop",
+      "example": "4:5 social"
+    },
+    {
+      "key": "mood",
+      "description": "Overall mood",
+      "example": "premium and elegant"
+    }
+  ]
+}

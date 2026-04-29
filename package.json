@@ -7,8 +7,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.2.7",
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.13",
+    "better-sqlite3": "^12.9.0",
     "cloudinary": "^1.32.0",
     "eslint-config-next": "^13.0.1",
     "framer-motion": "^7.6.4",

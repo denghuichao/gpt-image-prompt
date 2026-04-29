@@ -1,174 +1,164 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
-import Bridge from "../components/Icons/Bridge";
-import Logo from "../components/Icons/Logo";
-import Modal from "../components/Modal";
-import cloudinary from "../utils/cloudinary";
-import getBase64ImageUrl from "../utils/generateBlurPlaceholder";
-import type { ImageProps } from "../utils/types";
-import { useLastViewedPhoto } from "../utils/useLastViewedPhoto";
+import { resolveLocale, t } from "../utils/i18n";
 
-const Home: NextPage = ({ images }: { images: ImageProps[] }) => {
+const Home: NextPage = () => {
   const router = useRouter();
-  const { photoId } = router.query;
-  const [lastViewedPhoto, setLastViewedPhoto] = useLastViewedPhoto();
-
-  const lastViewedPhotoRef = useRef<HTMLAnchorElement>(null);
-
-  useEffect(() => {
-    // This effect keeps track of the last viewed photo in the modal to keep the index page in sync when the user navigates back
-    if (lastViewedPhoto && !photoId) {
-      lastViewedPhotoRef.current.scrollIntoView({ block: "center" });
-      setLastViewedPhoto(null);
-    }
-  }, [photoId, lastViewedPhoto, setLastViewedPhoto]);
+  const locale = resolveLocale(router.locale);
+  const dict = t(locale);
+  const content = dict.landing;
 
   return (
     <>
       <Head>
-        <title>Next.js Conf 2022 Photos</title>
-        <meta
-          property="og:image"
-          content="https://nextjsconf-pics.vercel.app/og-image.png"
-        />
-        <meta
-          name="twitter:image"
-          content="https://nextjsconf-pics.vercel.app/og-image.png"
-        />
+        <title>{dict.home.title}</title>
+        <meta name="description" content={dict.home.description} />
       </Head>
-      <main className="mx-auto max-w-[1960px] p-4">
-        {photoId && (
-          <Modal
-            images={images}
-            onClose={() => {
-              setLastViewedPhoto(photoId);
-            }}
-          />
-        )}
-        <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
-          <div className="after:content relative mb-5 flex h-[629px] flex-col items-center justify-end gap-4 overflow-hidden rounded-lg bg-white/10 px-6 pb-16 pt-64 text-center text-white shadow-highlight after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight lg:pt-0">
-            <div className="absolute inset-0 flex items-center justify-center opacity-20">
-              <span className="flex max-h-full max-w-full items-center justify-center">
-                <Bridge />
-              </span>
-              <span className="absolute left-0 right-0 bottom-0 h-[400px] bg-gradient-to-b from-black/0 via-black to-black"></span>
-            </div>
-            <Logo />
-            <h1 className="mt-8 mb-4 text-base font-bold uppercase tracking-widest">
-              2022 Event Photos
-            </h1>
-            <p className="max-w-[40ch] text-white/75 sm:max-w-[32ch]">
-              Our incredible Next.js community got together in San Francisco for
-              our first ever in-person conference!
-            </p>
-            <a
-              className="pointer z-10 mt-6 rounded-lg border border-white bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/10 hover:text-white md:mt-4"
-              href="https://vercel.com/new/clone?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-cloudinary&project-name=nextjs-image-gallery&repository-name=with-cloudinary&env=NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,CLOUDINARY_FOLDER&envDescription=API%20Keys%20from%20Cloudinary%20needed%20to%20run%20this%20application"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Clone and Deploy
-            </a>
-          </div>
-          {images.map(({ id, public_id, format, blurDataUrl }) => (
+
+      <main className="mx-auto max-w-[1960px] px-4 py-10 text-white sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_right,#22d3ee22,transparent_36%),radial-gradient(circle_at_bottom_left,#34d39918,transparent_45%),linear-gradient(145deg,#0f172a,#111827_45%,#0a0a0a)] p-8 sm:p-12 lg:p-14">
+          <div className="absolute -top-24 right-10 h-56 w-56 rounded-full border border-white/10" />
+          <div className="absolute -bottom-20 left-12 h-48 w-48 rounded-full border border-white/10" />
+
+          <p className="relative inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
+            {content.badge}
+          </p>
+
+          <h1 className="relative mt-5 max-w-4xl text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+            {content.heroTitleLine1}
+            <br className="hidden sm:block" />
+            {content.heroTitleLine2}
+          </h1>
+
+          <p className="relative mt-5 max-w-3xl text-sm leading-relaxed text-white/75 sm:text-base lg:text-lg">
+            {content.heroDesc}
+          </p>
+
+          <div className="relative mt-8 flex flex-wrap gap-3">
             <Link
-              key={id}
-              href={`/?photoId=${id}`}
-              as={`/p/${id}`}
-              ref={id === Number(lastViewedPhoto) ? lastViewedPhotoRef : null}
-              shallow
-              className="after:content group relative mb-5 block w-full cursor-zoom-in after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:shadow-highlight"
+              href="/gallery"
+              locale={locale}
+              className="rounded-full border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
             >
-              <Image
-                alt="Next.js Conf photo"
-                className="transform rounded-lg brightness-90 transition will-change-auto group-hover:brightness-110"
-                style={{ transform: "translate3d(0, 0, 0)" }}
-                placeholder="blur"
-                blurDataURL={blurDataUrl}
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_720/${public_id}.${format}`}
-                width={720}
-                height={480}
-                sizes="(max-width: 640px) 100vw,
-                  (max-width: 1280px) 50vw,
-                  (max-width: 1536px) 33vw,
-                  25vw"
-              />
+              {content.ctaGallery}
             </Link>
+            <Link
+              href="/build"
+              locale={locale}
+              className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              {content.ctaBuild}
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {content.valueCards.map((card) => (
+            <article key={card.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur">
+              <h2 className="text-lg font-semibold">{card.title}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-white/70">{card.desc}</p>
+            </article>
           ))}
-        </div>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.workflowLabel}</p>
+          <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.workflowTitle}</h2>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {content.workflow.map((item) => (
+              <div key={item.step} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-semibold tracking-[0.14em] text-cyan-200">{item.step}</p>
+                <h3 className="mt-2 text-lg font-semibold">{item.title}</h3>
+                <p className="mt-1 text-sm text-white/70">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.caseLabel}</p>
+          <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.caseTitle}</h2>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {content.caseStudies.map((item) => (
+              <article key={item.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <p className="mt-1 text-xs text-white/60">{item.scene}</p>
+
+                <div className="mt-3">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">{content.beforeLabel}</p>
+                  <pre className="mt-1 whitespace-pre-wrap rounded-lg border border-white/10 bg-black/35 p-2 text-xs text-white/70">
+                    {item.before}
+                  </pre>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">{content.afterLabel}</p>
+                  <pre className="mt-1 whitespace-pre-wrap rounded-lg border border-cyan-300/20 bg-cyan-400/10 p-2 text-xs text-cyan-100">
+                    {item.after}
+                  </pre>
+                </div>
+
+                <p className="mt-3 text-sm text-emerald-200">{item.impact}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.faqLabel}</p>
+            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.faqTitle}</h2>
+            <div className="mt-5 space-y-3">
+              {content.faqs.map((item) => (
+                <details key={item.q} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <summary className="cursor-pointer text-sm font-semibold">{item.q}</summary>
+                  <p className="mt-2 text-sm text-white/70">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.trustLabel}</p>
+            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.trustTitle}</h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {content.trustItems.map((item) => (
+                <span key={item} className="rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80">
+                  {item}
+                </span>
+              ))}
+            </div>
+            <p className="mt-5 text-sm text-white/70">{content.trustDesc}</p>
+          </article>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-400/10 via-emerald-300/10 to-sky-400/10 p-8 text-center sm:p-10">
+          <h2 className="text-2xl font-bold sm:text-3xl">{content.bottomTitle}</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-white/75 sm:text-base">{content.bottomDesc}</p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/gallery"
+              locale={locale}
+              className="rounded-full border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+            >
+              {content.bottomCta1}
+            </Link>
+            <Link
+              href="/build"
+              locale={locale}
+              className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              {content.bottomCta2}
+            </Link>
+          </div>
+        </section>
       </main>
-      <footer className="p-6 text-center text-white/80 sm:p-12">
-        Thank you to{" "}
-        <a
-          href="https://edelsonphotography.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Josh Edelson
-        </a>
-        ,{" "}
-        <a
-          href="https://www.newrevmedia.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Jenny Morgan
-        </a>
-        , and{" "}
-        <a
-          href="https://www.garysextonphotography.com/"
-          target="_blank"
-          className="font-semibold hover:text-white"
-          rel="noreferrer"
-        >
-          Gary Sexton
-        </a>{" "}
-        for the pictures.
-      </footer>
     </>
   );
 };
 
 export default Home;
-
-export async function getStaticProps() {
-  const results = await cloudinary.v2.search
-    .expression(`folder:${process.env.CLOUDINARY_FOLDER}/*`)
-    .sort_by("public_id", "desc")
-    .max_results(400)
-    .execute();
-  let reducedResults: ImageProps[] = [];
-
-  let i = 0;
-  for (let result of results.resources) {
-    reducedResults.push({
-      id: i,
-      height: result.height,
-      width: result.width,
-      public_id: result.public_id,
-      format: result.format,
-    });
-    i++;
-  }
-
-  const blurImagePromises = results.resources.map((image: ImageProps) => {
-    return getBase64ImageUrl(image);
-  });
-  const imagesWithBlurDataUrls = await Promise.all(blurImagePromises);
-
-  for (let i = 0; i < reducedResults.length; i++) {
-    reducedResults[i].blurDataUrl = imagesWithBlurDataUrls[i];
-  }
-
-  return {
-    props: {
-      images: reducedResults,
-    },
-  };
-}
