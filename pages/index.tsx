@@ -1,14 +1,16 @@
-import type { NextPage } from "next";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { resolveLocale, t } from "../utils/i18n";
+import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
 
-const Home: NextPage = () => {
+const Home: NextPage<{ previewTemplates: PromptTemplate[] }> = ({ previewTemplates }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
-  const content = dict.landing;
+  const c = dict.landing;
 
   return (
     <>
@@ -17,148 +19,176 @@ const Home: NextPage = () => {
         <meta name="description" content={dict.home.description} />
       </Head>
 
-      <main className="mx-auto max-w-[1960px] px-4 py-10 text-white sm:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_top_right,#22d3ee22,transparent_36%),radial-gradient(circle_at_bottom_left,#34d39918,transparent_45%),linear-gradient(145deg,#0f172a,#111827_45%,#0a0a0a)] p-8 sm:p-12 lg:p-14">
-          <div className="absolute -top-24 right-10 h-56 w-56 rounded-full border border-white/10" />
-          <div className="absolute -bottom-20 left-12 h-48 w-48 rounded-full border border-white/10" />
+      <main className="mx-auto max-w-[1960px] px-4 sm:px-6 lg:px-8">
 
-          <p className="relative inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
-            {content.badge}
-          </p>
-
-          <h1 className="relative mt-5 max-w-4xl text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-            {content.heroTitleLine1}
-            <br className="hidden sm:block" />
-            {content.heroTitleLine2}
-          </h1>
-
-          <p className="relative mt-5 max-w-3xl text-sm leading-relaxed text-white/75 sm:text-base lg:text-lg">
-            {content.heroDesc}
-          </p>
-
-          <div className="relative mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/gallery"
-              locale={locale}
-              className="rounded-full border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
-            >
-              {content.ctaGallery}
-            </Link>
-            <Link
-              href="/build"
-              locale={locale}
-              className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
-            >
-              {content.ctaBuild}
-            </Link>
+        {/* ── 1. HERO ─────────────────────────────────────────────────── */}
+        <section className="relative pb-20 pt-28 lg:pt-40">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-glow-500">{c.heroEyebrow}</p>
+            <h1 className="mt-5 font-display text-5xl font-semibold italic leading-[1.06] tracking-tight text-night-50 sm:text-6xl lg:text-7xl xl:text-[80px]">
+              {c.heroTitle}
+              <br />
+              <span className="text-glow-300">{c.heroTitleAccent}</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-night-400 lg:text-lg">
+              {c.heroDesc}
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/gallery"
+                locale={locale}
+                className="inline-flex items-center gap-2 rounded-full bg-glow-500 px-7 py-3.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md"
+              >
+                {c.ctaGallery}
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </section>
 
-        <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {content.valueCards.map((card) => (
-            <article key={card.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur">
-              <h2 className="text-lg font-semibold">{card.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-white/70">{card.desc}</p>
-            </article>
-          ))}
+        {/* ── 2. PROBLEM ──────────────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-20 lg:items-center">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-night-500">{c.problemLabel}</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
+                {c.problemTitle}
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-night-400">{c.problemDesc}</p>
+            </div>
+            <div className="space-y-3">
+              {c.problems.map((p, i) => (
+                <div key={i} className="flex gap-4 rounded-2xl border border-night-700/60 bg-night-900/50 p-5">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-night-800 font-mono text-[10px] text-night-500">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-night-100">{p.title}</p>
+                    <p className="mt-1 text-sm text-night-500">{p.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.workflowLabel}</p>
-          <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.workflowTitle}</h2>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {content.workflow.map((item) => (
-              <div key={item.step} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs font-semibold tracking-[0.14em] text-cyan-200">{item.step}</p>
-                <h3 className="mt-2 text-lg font-semibold">{item.title}</h3>
-                <p className="mt-1 text-sm text-white/70">{item.desc}</p>
+        {/* ── 3. FEATURES ─────────────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="mb-12 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-glow-500">{c.solutionLabel}</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
+              {c.solutionTitle}
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-night-400">{c.solutionDesc}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+            {c.features.map((f, i) => (
+              <div key={i} className="card-glow rounded-2xl border border-night-700 bg-night-900/60 p-7">
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-glow-500">{f.eyebrow}</p>
+                <h3 className="mt-3 font-display text-xl font-semibold italic text-night-50">{f.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-night-400">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 lg:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.caseLabel}</p>
-          <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.caseTitle}</h2>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {content.caseStudies.map((item) => (
-              <article key={item.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <h3 className="text-lg font-semibold">{item.title}</h3>
-                <p className="mt-1 text-xs text-white/60">{item.scene}</p>
-
-                <div className="mt-3">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">{content.beforeLabel}</p>
-                  <pre className="mt-1 whitespace-pre-wrap rounded-lg border border-white/10 bg-black/35 p-2 text-xs text-white/70">
-                    {item.before}
-                  </pre>
-                </div>
-
-                <div className="mt-3">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-white/45">{content.afterLabel}</p>
-                  <pre className="mt-1 whitespace-pre-wrap rounded-lg border border-cyan-300/20 bg-cyan-400/10 p-2 text-xs text-cyan-100">
-                    {item.after}
-                  </pre>
-                </div>
-
-                <p className="mt-3 text-sm text-emerald-200">{item.impact}</p>
-              </article>
+        {/* ── 4. HOW IT WORKS ─────────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="mb-12 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-night-500">{c.howLabel}</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
+              {c.howTitle}
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-night-400">{c.howDesc}</p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {c.steps.map((step, i) => (
+              <div key={i} className="relative rounded-2xl border border-night-700 bg-night-900/60 p-6">
+                {i < c.steps.length - 1 && (
+                  <span className="absolute right-0 top-1/2 hidden -translate-y-1/2 translate-x-1/2 text-night-700 xl:block">→</span>
+                )}
+                <p className="font-display text-5xl font-bold italic text-night-800">{step.step}</p>
+                <h3 className="mt-4 text-sm font-semibold text-night-100">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-night-500">{step.desc}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.faqLabel}</p>
-            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.faqTitle}</h2>
-            <div className="mt-5 space-y-3">
-              {content.faqs.map((item) => (
-                <details key={item.q} className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <summary className="cursor-pointer text-sm font-semibold">{item.q}</summary>
-                  <p className="mt-2 text-sm text-white/70">{item.a}</p>
-                </details>
-              ))}
+        {/* ── 5. GALLERY PREVIEW ──────────────────────────────────────── */}
+        <section className="pb-24">
+          <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-night-500">{c.galleryLabel}</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
+                {c.galleryTitle}
+              </h2>
+              <p className="mt-2 text-sm text-night-400">{c.galleryDesc}</p>
             </div>
-          </article>
-
-          <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{content.trustLabel}</p>
-            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{content.trustTitle}</h2>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {content.trustItems.map((item) => (
-                <span key={item} className="rounded-full border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80">
-                  {item}
-                </span>
-              ))}
-            </div>
-            <p className="mt-5 text-sm text-white/70">{content.trustDesc}</p>
-          </article>
-        </section>
-
-        <section className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-400/10 via-emerald-300/10 to-sky-400/10 p-8 text-center sm:p-10">
-          <h2 className="text-2xl font-bold sm:text-3xl">{content.bottomTitle}</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-white/75 sm:text-base">{content.bottomDesc}</p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/gallery"
               locale={locale}
-              className="rounded-full border border-white/20 bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-night-600 px-5 py-2.5 text-sm font-semibold text-night-300 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50"
             >
-              {content.bottomCta1}
+              {c.galleryCtaLabel}
+              <span aria-hidden="true">→</span>
             </Link>
+          </div>
+          <div className="columns-2 gap-4 sm:columns-3 lg:columns-4 xl:columns-5">
+            {previewTemplates.map((template) => (
+              <Link
+                key={template.slug}
+                href={`/prompts/${template.slug}`}
+                locale={locale}
+                className="group mb-4 block break-inside-avoid overflow-hidden rounded-2xl border border-night-700 bg-night-800 transition-all hover:border-glow-500/30 hover:shadow-card-hover"
+              >
+                <div className="relative">
+                  <Image
+                    src={template.images[0]}
+                    alt={template.title}
+                    width={600}
+                    height={800}
+                    className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/80 via-transparent to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <p className="line-clamp-2 text-xs font-medium leading-snug text-night-100">{template.title}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 7. BOTTOM CTA ───────────────────────────────────────────── */}
+        <section className="mb-24 overflow-hidden rounded-3xl border border-glow-500/20 bg-night-900/80 px-8 py-20 text-center shadow-[0_0_80px_rgba(251,191,36,0.06)] backdrop-blur-sm sm:px-12">
+          <h2 className="mx-auto max-w-2xl font-display text-3xl font-semibold italic text-night-50 sm:text-4xl lg:text-5xl">
+            {c.bottomTitle}
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-night-400">
+            {c.bottomDesc}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/build"
+              href="/gallery"
               locale={locale}
-              className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
+              className="inline-flex items-center gap-2 rounded-full bg-glow-500 px-8 py-3.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md"
             >
-              {content.bottomCta2}
+              {c.bottomCta1}
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
         </section>
+
       </main>
     </>
   );
 };
 
 export default Home;
+
+export const getStaticProps: GetStaticProps = async () => {
+  const all = getPromptTemplates();
+  const previewTemplates = all.slice(0, 15);
+  return { props: { previewTemplates } };
+};

@@ -1,10 +1,13 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { SignInButton, useAuth } from "@clerk/nextjs";
+import { SparklesIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
+const ASPECT_RATIOS = ["auto", "21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"] as const;
 
 type ChatMessage = {
   id: string;
@@ -13,38 +16,24 @@ type ChatMessage = {
   tags?: string[];
   images?: string[];
   referenceImages?: Array<{ name: string; url: string }>;
+  loading?: boolean;
+  transient?: boolean;
 };
 
-type VariableDef = {
-  key: string;
-  description?: string;
-  example?: string;
-};
-type QualityKey = "draft" | "standard" | "high" | "ultra";
+type VariableDef = { key: string; description?: string; example?: string };
 
 function extractVariableDefs(template: PromptTemplate | undefined): VariableDef[] {
-  if (!template) {
-    return [];
-  }
-
+  if (!template) return [];
   if (template.variables && template.variables.length > 0) {
-    return template.variables.map((variable) => ({
-      key: variable.key,
-      description: variable.description,
-      example: variable.example,
-    }));
+    return template.variables.map((v) => ({ key: v.key, description: v.description, example: v.example }));
   }
-
   const keys = new Set<string>();
   const regex = /\{([^}]+)\}/g;
   let match: RegExpExecArray | null = null;
   while ((match = regex.exec(template.prompt_template)) !== null) {
     const key = match[1] ? match[1].trim() : "";
-    if (key) {
-      keys.add(key);
-    }
+    if (key) keys.add(key);
   }
-
   return Array.from(keys).map((key) => ({ key }));
 }
 
@@ -57,185 +46,104 @@ function fillPrompt(templatePrompt: string, values: Record<string, string>): str
 }
 
 function keyLabel(key: string): string {
-  return key
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (m) => m.toUpperCase());
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
 function renderHighlightedPromptTemplate(templatePrompt: string) {
   const parts = templatePrompt.split(/(\{[^}]+\})/g);
   return parts.map((part, idx) => {
-    const isVariable = /^\{[^}]+\}$/.test(part);
-    if (!isVariable) {
-      return (
-        <span key={`text-${idx}`} className="text-white/90">
-          {part}
-        </span>
-      );
+    if (!/^\{[^}]+\}$/.test(part)) {
+      return <span key={`t-${idx}`} className="text-night-300">{part}</span>;
     }
-
     return (
-      <span
-        key={`var-${idx}`}
-        className="rounded-md border border-cyan-300/35 bg-cyan-400/15 px-1.5 py-0.5 font-semibold text-cyan-100"
-      >
+      <span key={`v-${idx}`} className="rounded bg-glow-500/15 px-1 font-semibold text-glow-300">
         {part}
       </span>
     );
   });
 }
 
+const selectClass = "w-full rounded-xl border border-night-700 bg-night-950/60 px-3 py-2 font-mono text-xs text-night-100 outline-none transition focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.06)]";
+const inputClass  = "w-full rounded-xl border border-night-700 bg-night-950/60 px-3 py-2 text-sm text-night-100 outline-none transition placeholder:text-night-600 focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.06)]";
+
 const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => {
   const router = useRouter();
+  const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
   const templateSlug = typeof router.query.template === "string" ? router.query.template : "";
   const isTemplateMode = Boolean(templateSlug);
 
   const activeTemplate = useMemo(
-    () => (isTemplateMode ? templates.find((template) => template.slug === templateSlug) || templates[0] : undefined),
+    () => (isTemplateMode ? templates.find((t) => t.slug === templateSlug) || templates[0] : undefined),
     [templates, templateSlug, isTemplateMode],
   );
   const templateKey = isTemplateMode ? activeTemplate?.slug || templateSlug : "default";
-
   const variableDefs = useMemo(() => extractVariableDefs(activeTemplate), [activeTemplate]);
 
-  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
-  const [ratio, setRatio] = useState("3:4");
-  const [quality, setQuality] = useState<QualityKey>("high");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [variableValues, setVariableValues]         = useState<Record<string, string>>({});
+  const [ratio, setRatio]                           = useState("auto");
+  const [isGenerating, setIsGenerating]             = useState(false);
+  const [generateError, setGenerateError]           = useState<string>("");
   const [isTemplateInfoExpanded, setIsTemplateInfoExpanded] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [referenceImages, setReferenceImages] = useState<Array<{ name: string; url: string }>>([]);
+  const [chatInput, setChatInput]                   = useState("");
+  const [referenceImages, setReferenceImages]       = useState<Array<{ name: string; url: string }>>([]);
   const [activeReferencePreview, setActiveReferencePreview] = useState<string>("");
+  const [activeGeneratedPreview, setActiveGeneratedPreview] = useState<string>("");
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
   const [hasLoadedConversation, setHasLoadedConversation] = useState(false);
-
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "system-1",
-      role: "system",
-      content: dict.build.systemReady,
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const initialMessages = useMemo<ChatMessage[]>(() => {
-    if (!isTemplateMode) {
-      return [
-        {
-          id: "system-chat-1",
-          role: "system",
-          content: dict.build.systemReadyChat,
-        },
-      ];
-    }
-
-    const base: ChatMessage[] = [
-      {
-        id: "system-1",
-        role: "system",
-        content: dict.build.systemReady,
-      },
-    ];
-
-    if (activeTemplate) {
-      base.push({
-        id: `template-system-${activeTemplate.slug}`,
-        role: "system",
-        content: `${dict.build.templateLoaded} ${activeTemplate.title}`,
-        tags: [activeTemplate.style || dict.common.uncategorized, ...activeTemplate.tags.slice(0, 3)],
-      });
-    }
-
-    return base;
-  }, [
-    activeTemplate,
-    dict.build.systemReady,
-    dict.build.systemReadyChat,
-    dict.build.templateLoaded,
-    dict.common.uncategorized,
-    isTemplateMode,
-  ]);
+    return [];
+  }, []);
 
   useEffect(() => {
-    if (!isTemplateMode) {
-      return;
-    }
-
-    if (!activeTemplate) {
-      return;
-    }
-
+    if (!isTemplateMode || !activeTemplate) return;
     const nextValues: Record<string, string> = {};
-    for (const variable of extractVariableDefs(activeTemplate)) {
-      nextValues[variable.key] = variable.example || "";
-    }
-
+    for (const v of extractVariableDefs(activeTemplate)) nextValues[v.key] = v.example || "";
     setVariableValues(nextValues);
     setReferenceImages([]);
     setActiveReferencePreview("");
   }, [activeTemplate, isTemplateMode]);
 
   useEffect(() => {
-    if (isTemplateMode) {
-      return;
-    }
+    if (isTemplateMode) return;
     setReferenceImages([]);
     setActiveReferencePreview("");
   }, [isTemplateMode]);
 
   useEffect(() => {
-    if (!templateKey || (isTemplateMode && !activeTemplate)) {
-      return;
-    }
+    if (!templateKey || (isTemplateMode && !activeTemplate)) return;
+    let cancelled = false;
+    setHasLoadedConversation(false);
 
-    let isCancelled = false;
-
-    async function loadConversation() {
+    async function load() {
       try {
-        const response = await fetch(`/api/conversations?templateKey=${encodeURIComponent(templateKey)}`);
-        if (!response.ok) {
-          if (!isCancelled) {
-            setMessages(initialMessages);
-            setHasLoadedConversation(true);
-          }
-          return;
-        }
-
-        const payload = await response.json();
+        const res = await fetch(`/api/conversations?templateKey=${encodeURIComponent(templateKey)}`);
+        if (!res.ok) throw new Error();
+        const payload = await res.json();
         const stored = payload?.conversation?.messages;
-        if (!isCancelled) {
-          if (Array.isArray(stored) && stored.length > 0) {
-            setMessages(stored);
-          } else {
-            setMessages(initialMessages);
-          }
+        if (!cancelled) {
+          const normalized = Array.isArray(stored)
+            ? stored
+              .map((m: ChatMessage) => ({ ...m, transient: false }))
+              .filter((m: ChatMessage) => m.role !== "system")
+            : [];
+          setMessages(normalized.length > 0 ? normalized : initialMessages);
           setHasLoadedConversation(true);
         }
       } catch {
-        if (!isCancelled) {
-          setMessages(initialMessages);
-          setHasLoadedConversation(true);
-        }
+        if (!cancelled) { setMessages(initialMessages); setHasLoadedConversation(true); }
       }
     }
-
-    setHasLoadedConversation(false);
-    void loadConversation();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [
-    activeTemplate,
-    initialMessages,
-    isTemplateMode,
-    templateKey,
-  ]);
+    void load();
+    return () => { cancelled = true; };
+  }, [activeTemplate, initialMessages, isTemplateMode, templateKey]);
 
   const finalPrompt = useMemo(() => {
-    if (!activeTemplate) {
-      return "";
-    }
+    if (!activeTemplate) return "";
     return fillPrompt(activeTemplate.prompt_template, variableValues);
   }, [activeTemplate, variableValues]);
 
@@ -243,97 +151,191 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     setVariableValues((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleGenerate() {
-    const promptToSend = isTemplateMode ? finalPrompt : chatInput;
-    if (!promptToSend.trim()) {
-      return;
-    }
-
-    const qualityLabel = dict.build.qualityOptions[quality] || quality;
-    const configTags = [`${dict.build.aspectRatio}:${ratio}`, `${dict.build.quality}:${qualityLabel}`].filter(Boolean);
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: promptToSend,
-      tags: configTags,
-      referenceImages: referenceImages.map((item) => ({ name: item.name, url: item.url })),
+  function replaceLoadingAssistantWithFinal(
+    list: ChatMessage[],
+    pendingId: string,
+    patch: Partial<ChatMessage>,
+  ) {
+    const finalMessage: ChatMessage = {
+      id: pendingId,
+      role: "assistant",
+      content: patch.content ?? "",
+      tags: patch.tags,
+      images: patch.images,
+      referenceImages: patch.referenceImages,
+      loading: false,
+      transient: false,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setIsGenerating(true);
-
-    window.setTimeout(() => {
-      const outputs = (activeTemplate?.images || templates[0]?.images || []).slice(0, 2);
-      const assistantMessage: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: dict.build.generationDone,
-        tags: configTags,
-        images: outputs,
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsGenerating(false);
-      if (!isTemplateMode) {
-        setChatInput("");
-      }
-    }, 900);
+    const withoutLoading = list.filter((m) => !(m.role === "assistant" && m.loading));
+    return [...withoutLoading, finalMessage];
   }
 
-  const requiredReferenceImageCount = isTemplateMode
-    ? Math.max(0, activeTemplate?.reference_image_count || 0)
-    : 0;
-
-  function handleReferenceUpload(slotIndex: number, file: File | null) {
-    if (!file) {
+  async function handleGenerate() {
+    if (hasClerkKey && authLoaded && !isSignedIn) {
+      setGenerateError(locale === "en" ? "Please sign in first." : "请先登录。");
       return;
     }
 
+    const promptToSend = isTemplateMode ? finalPrompt : chatInput;
+    if (!promptToSend.trim()) return;
+    const configTags = [
+      `${dict.build.aspectRatio}:${ratio}`,
+      "GPT Image 2",
+    ];
+    const reqId = Date.now();
+    const userMsgId = `user-${reqId}`;
+    const pendingMsgId = `assistant-pending-${reqId}`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: userMsgId,
+        role: "user",
+        content: promptToSend,
+        tags: configTags,
+        referenceImages: referenceImages.map((i) => ({ name: i.name, url: i.url })),
+      },
+      {
+        id: pendingMsgId,
+        role: "assistant",
+        content: dict.build.generating,
+        tags: configTags,
+        loading: true,
+        transient: true,
+      },
+    ]);
+    setIsGenerating(true);
+    setGenerateError("");
+
+    let referenceImageBase64: string | undefined;
+    if (referenceImages[0]?.url) {
+      try {
+        const blob = await fetch(referenceImages[0].url).then((r) => r.blob());
+        referenceImageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch { /* skip reference image if conversion fails */ }
+    }
+
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: promptToSend, ratio, referenceImageBase64 }),
+      });
+      const data = await res.json() as {
+        images?: string[];
+        data?: Array<{ url?: string; b64_json?: string }>;
+        output?: Array<{ url?: string; b64_json?: string }>;
+        error?: string;
+        credits?: { balance?: number };
+      };
+      if (!res.ok || data.error) {
+        const errMsg = data.error ?? `Error ${res.status}`;
+        setGenerateError(errMsg);
+        setMessages((prev) =>
+          replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
+            content: `生成失败: ${errMsg}`,
+            tags: configTags,
+          }),
+        );
+      } else {
+        const parsedImages = (() => {
+          if (Array.isArray(data.images) && data.images.length > 0) return data.images.filter(Boolean);
+          const arr = data.data ?? data.output ?? [];
+          return arr
+            .map((d) => (d?.b64_json ? `data:image/png;base64,${d.b64_json}` : (d?.url ?? "")))
+            .filter(Boolean);
+        })();
+
+        if (typeof data.credits?.balance === "number") {
+          void fetch("/api/credits", { cache: "no-store" }).catch(() => {});
+        }
+        setMessages((prev) =>
+          replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
+            content: parsedImages.length > 0 ? dict.build.generationDone : "生成成功，但未返回可展示图片",
+            images: parsedImages,
+            tags: configTags,
+          }),
+        );
+        if (!isTemplateMode) setChatInput("");
+      }
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : "Network error";
+      setGenerateError(errMsg);
+      setMessages((prev) =>
+        replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
+          content: `生成失败: ${errMsg}`,
+          tags: configTags,
+        }),
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  function handleReferenceUpload(file: File | null) {
+    if (!file) return;
     const objectUrl = URL.createObjectURL(file);
-    setReferenceImages((prev) => {
-      const next = [...prev];
-      next[slotIndex] = { name: file.name, url: objectUrl };
-      return next;
-    });
+    setReferenceImages((prev) => { prev.forEach((i) => i?.url && URL.revokeObjectURL(i.url)); return [{ name: file.name, url: objectUrl }]; });
     setActiveReferencePreview(objectUrl);
   }
 
-  function handleRemoveReferenceImage(slotIndex: number) {
-    setReferenceImages((prev) => {
-      const next = [...prev];
-      const removed = next[slotIndex];
-      if (removed?.url) {
-        URL.revokeObjectURL(removed.url);
-      }
-      next[slotIndex] = undefined as never;
-      return next.filter(Boolean);
-    });
+  function handleRemoveReferenceImage() {
+    setReferenceImages((prev) => { prev.forEach((i) => i?.url && URL.revokeObjectURL(i.url)); return []; });
     setActiveReferencePreview("");
   }
 
-  useEffect(() => {
-    if (!hasLoadedConversation || !templateKey) {
-      return;
+  async function handleDownloadImage(src: string) {
+    if (!src || isDownloadingImage) return;
+    setIsDownloadingImage(true);
+    try {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error("download failed");
+      const blob = await res.blob();
+      const ext = blob.type.includes("jpeg") || blob.type.includes("jpg")
+        ? "jpg"
+        : blob.type.includes("webp")
+          ? "webp"
+          : "png";
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `generated-${Date.now()}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const link = document.createElement("a");
+      link.href = src;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      setIsDownloadingImage(false);
     }
+  }
 
+  useEffect(() => {
+    if (!hasLoadedConversation || !templateKey) return;
     const timeout = window.setTimeout(async () => {
       try {
+        const persistedMessages = messages
+          .filter((m) => m.role !== "system")
+          .map((m) => ({ ...m, transient: false }));
         await fetch("/api/conversations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            templateKey,
-            messages,
-          }),
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateKey, messages: persistedMessages }),
         });
-      } catch {
-        // Ignore save failures to avoid blocking the UI.
-      }
+      } catch { /* ignore */ }
     }, 250);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
+    return () => window.clearTimeout(timeout);
   }, [hasLoadedConversation, messages, templateKey]);
 
   return (
@@ -343,41 +345,41 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
         <meta name="description" content={dict.build.description} />
       </Head>
 
-      <main className="mx-auto h-[calc(100vh-72px)] max-w-[1960px] px-4 py-4 text-white sm:px-6 lg:px-8">
-        <section
-          className={`grid h-full min-h-0 grid-cols-1 gap-4 ${
-            isTemplateMode ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]" : ""
-          }`}
-        >
-          {isTemplateMode && (
-            <aside className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <h2 className="mb-3 shrink-0 text-sm font-semibold uppercase tracking-[0.15em] text-white/60">
-                {dict.build.promptBuilder}
-              </h2>
+      <main className="mx-auto h-[calc(100vh-72px)] max-w-[1960px] px-4 py-4 sm:px-6 lg:px-8">
+        <section className={`grid h-full min-h-0 grid-cols-1 gap-3 ${isTemplateMode ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]" : ""}`}>
 
-              <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          {/* ── Left panel: Prompt Builder ──────────────────────────── */}
+          {isTemplateMode && (
+            <aside className="flex min-h-0 flex-col rounded-2xl border border-night-700 bg-night-900/80 shadow-card">
+              <div className="shrink-0 border-b border-night-700/60 px-4 py-3">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-night-500">
+                  {dict.build.promptBuilder}
+                </h2>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                 {activeTemplate && (
                   <>
-                    <div className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-black/25">
+                    {/* Template info accordion */}
+                    <div className="mb-4 overflow-hidden rounded-xl border border-night-700 bg-night-800/60">
                       <button
                         type="button"
-                        onClick={() => setIsTemplateInfoExpanded((prev) => !prev)}
-                        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition hover:bg-white/5"
+                        onClick={() => setIsTemplateInfoExpanded((p) => !p)}
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition hover:bg-night-700/40"
                       >
-                        <p className="min-w-0 truncate text-sm font-semibold">{activeTemplate.title}</p>
-                        <span className="text-xs text-white/55">
+                        <p className="min-w-0 truncate font-display text-base font-semibold italic text-night-100">
+                          {activeTemplate.title}
+                        </p>
+                        <span className="shrink-0 text-xs text-night-500 transition group-open:text-glow-400">
                           {isTemplateInfoExpanded ? dict.build.collapse : dict.build.expand}
                         </span>
                       </button>
                       {isTemplateInfoExpanded && (
-                        <div className="border-t border-white/10 px-3 py-3">
-                          <p className="text-xs text-white/65">{activeTemplate.desc}</p>
+                        <div className="border-t border-night-700/60 px-3 py-3">
+                          <p className="text-xs leading-relaxed text-night-400">{activeTemplate.desc}</p>
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {(activeTemplate.tags || []).slice(0, 5).map((tag) => (
-                              <span
-                                key={`${activeTemplate.slug}-${tag}`}
-                                className="rounded-full border border-white/20 bg-black/30 px-2 py-0.5 text-[11px] text-white/75"
-                              >
+                              <span key={`${activeTemplate.slug}-${tag}`} className="rounded-full border border-night-600/60 bg-night-950/60 px-2 py-0.5 font-mono text-[10px] text-night-400">
                                 #{tag}
                               </span>
                             ))}
@@ -386,262 +388,294 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       )}
                     </div>
 
-                    <div className="mb-4 rounded-xl border border-white/10 bg-black/25 p-3">
-                      <p className="mb-1 text-xs uppercase tracking-[0.12em] text-white/50">{dict.build.promptTemplate}</p>
-                      <p className="text-sm leading-relaxed">{renderHighlightedPromptTemplate(activeTemplate.prompt_template)}</p>
+                    {/* Prompt template display */}
+                    <div className="mb-4 rounded-xl border border-night-700 bg-night-950/60 p-3">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                        {dict.build.promptTemplate}
+                      </p>
+                      <p className="font-mono text-xs leading-relaxed">
+                        {renderHighlightedPromptTemplate(activeTemplate.prompt_template)}
+                      </p>
                     </div>
 
+                    {/* Variable inputs */}
                     <div className="mb-4 space-y-3">
-                      {variableDefs.map((variable) => (
-                        <div key={variable.key}>
-                          <label className="mb-1 block text-xs text-white/60">{keyLabel(variable.key)}</label>
+                      {variableDefs.map((v) => (
+                        <div key={v.key}>
+                          <label className="mb-1 block text-xs font-medium text-night-400">
+                            {keyLabel(v.key)}
+                          </label>
                           <input
-                            value={variableValues[variable.key] || ""}
-                            onChange={(event) => handleVariableChange(variable.key, event.target.value)}
-                            placeholder={variable.example || `{${variable.key}}`}
-                            className="w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
+                            value={variableValues[v.key] || ""}
+                            onChange={(e) => handleVariableChange(v.key, e.target.value)}
+                            placeholder={v.example || `{${v.key}}`}
+                            className={inputClass}
                           />
-                          {variable.description && (
-                            <p className="mt-1 text-[11px] text-white/45">{variable.description}</p>
-                          )}
+                          {/* {v.description && (
+                            <p className="mt-1 text-[11px] text-night-600">{v.description}</p>
+                          )} */}
                         </div>
                       ))}
                     </div>
                   </>
                 )}
 
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block text-xs text-white/60">{dict.build.aspectRatio}</label>
-                    <select
-                      value={ratio}
-                      onChange={(event) => setRatio(event.target.value)}
-                      className="w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
-                    >
-                      <option value="1:1">1:1</option>
-                      <option value="3:4">3:4</option>
-                      <option value="4:5">4:5</option>
-                      <option value="16:9">16:9</option>
-                      <option value="9:16">9:16</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs text-white/60">{dict.build.quality}</label>
-                    <select
-                      value={quality}
-                      onChange={(event) => setQuality(event.target.value as QualityKey)}
-                      className="w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
-                    >
-                      <option value="draft">{dict.build.qualityOptions.draft}</option>
-                      <option value="standard">{dict.build.qualityOptions.standard}</option>
-                      <option value="high">{dict.build.qualityOptions.high}</option>
-                      <option value="ultra">{dict.build.qualityOptions.ultra}</option>
-                    </select>
-                  </div>
-
-                  <div className="col-span-2">
-                    <p className="text-xs text-white/45">{dict.build.minimalSettings}</p>
-                  </div>
+                {/* Generation config */}
+                <div className="mb-4 rounded-xl border border-night-700 bg-night-800/40 p-3">
+                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                    Generation Config
+                  </p>
+                  <label className="mb-1 block text-[11px] text-night-500">{dict.build.aspectRatio}</label>
+                  <select value={ratio} onChange={(e) => setRatio(e.target.value)} className={selectClass}>
+                    {ASPECT_RATIOS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                  <p className="mt-2 text-[11px] text-night-700">{dict.build.minimalSettings}</p>
                 </div>
 
-                {requiredReferenceImageCount > 0 && (
-                  <div className="mb-4 rounded-xl border border-white/10 bg-black/25 p-3">
-                    <p className="mb-2 text-xs uppercase tracking-[0.12em] text-white/50">
-                      {dict.build.referenceImages} ({requiredReferenceImageCount})
+                {/* Reference images */}
+                {isTemplateMode && (
+                  <div className="mb-4">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                      {dict.build.referenceImages}
                     </p>
-
-                    <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {Array.from({ length: requiredReferenceImageCount }).map((_, idx) => (
-                        <label
-                          key={`reference-upload-${idx}`}
-                          className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed border-white/20 bg-black/25 px-3 py-2 text-xs text-white/70 transition hover:border-white/35 hover:text-white"
-                        >
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(event) => handleReferenceUpload(idx, event.target.files?.[0] || null)}
-                          />
-                          {dict.build.uploadRef} {idx + 1}
-                        </label>
-                      ))}
-                    </div>
-
+                    <label className="mb-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-night-600 bg-night-950/40 px-3 py-3 text-xs text-night-500 transition hover:border-glow-500/40 hover:text-night-300">
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleReferenceUpload(e.target.files?.[0] || null)} />
+                      <span className="text-base leading-none">+</span>
+                      {dict.build.uploadRef}
+                    </label>
                     {referenceImages.length > 0 && (
-                      <div className="mb-3 flex flex-wrap gap-2">
+                      <div className="mb-2 flex flex-wrap gap-1.5">
                         {referenceImages.map((item, idx) => (
                           <button
-                            key={`reference-tag-${item.name}-${idx}`}
+                            key={`ref-${item.name}-${idx}`}
                             type="button"
                             onClick={() => setActiveReferencePreview(item.url)}
-                            className="group inline-flex max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/35 px-2.5 py-1 text-xs text-white/85 transition hover:border-white/35"
+                            className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-night-600 bg-night-800 px-2.5 py-1 text-xs text-night-300 transition hover:border-night-500"
                           >
-                            <span aria-hidden="true">🖼</span>
-                            <span className="max-w-[150px] truncate">{item.name}</span>
+                            <span className="text-night-500">▣</span>
+                            <span className="max-w-[140px] truncate">{item.name}</span>
                             <span
-                              className="ml-1 rounded-full px-1 text-white/60 hover:bg-white/15 hover:text-white"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleRemoveReferenceImage(idx);
-                              }}
+                              className="ml-0.5 rounded-full px-0.5 text-night-600 hover:bg-night-700 hover:text-night-200"
                               role="button"
                               tabIndex={0}
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  handleRemoveReferenceImage(idx);
-                                }
-                              }}
-                            >
-                              ×
-                            </span>
+                              onClick={(e) => { e.stopPropagation(); handleRemoveReferenceImage(); }}
+                              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); handleRemoveReferenceImage(); } }}
+                            >×</span>
                           </button>
                         ))}
                       </div>
                     )}
-
                     {activeReferencePreview && (
-                      <div className="overflow-hidden rounded-lg border border-white/10 bg-black/20">
-                        <Image
-                          src={activeReferencePreview}
-                          alt="Selected reference preview"
-                          width={1200}
-                          height={900}
-                          className="h-auto w-full object-cover"
-                        />
+                      <div className="overflow-hidden rounded-xl border border-night-700">
+                        <Image src={activeReferencePreview} alt="Reference preview" width={1200} height={900} className="h-auto w-full object-cover" />
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-                className="mt-3 w-full shrink-0 rounded-xl border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isGenerating ? dict.build.generating : dict.build.generateImage}
-              </button>
+              {/* Generate button */}
+              <div className="shrink-0 border-t border-night-700/60 p-3">
+                {hasClerkKey && authLoaded && !isSignedIn ? (
+                  <SignInButton mode="modal">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-glow-500 py-2.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md"
+                    >
+                      {dict.build.generateImage}
+                    </button>
+                  </SignInButton>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { void handleGenerate(); }}
+                    disabled={isGenerating}
+                    className="w-full rounded-xl bg-glow-500 py-2.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isGenerating ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-night-950/60" />
+                        {dict.build.generating}
+                      </span>
+                    ) : dict.build.generateImage}
+                  </button>
+                )}
+              </div>
             </aside>
           )}
 
-          <section className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-            <h2 className="mb-3 shrink-0 text-sm font-semibold uppercase tracking-[0.15em] text-white/60">
-              {dict.build.dialogue}
-            </h2>
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`rounded-xl p-3 text-sm leading-relaxed ${
-                    message.role === "system"
-                      ? "border border-cyan-300/20 bg-cyan-400/10 text-cyan-100"
-                      : message.role === "assistant"
-                        ? "border border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
-                        : "border border-white/15 bg-white/5 text-white"
-                  }`}
-                >
-                  <p className="mb-1 text-[11px] uppercase tracking-[0.12em] text-white/55">{message.role}</p>
-                  <p>{message.content}</p>
+          {/* ── Right panel: Dialogue ────────────────────────────────── */}
+          <section className="flex min-h-0 flex-col rounded-2xl border border-night-700 bg-night-900/80 shadow-card">
+            <div className="shrink-0 border-b border-night-700/60 px-4 py-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-night-500">
+                {dict.build.dialogue}
+              </h2>
+            </div>
 
-                  {message.tags && message.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {message.tags.map((tag) => (
-                        <span
-                          key={`${message.id}-${tag}`}
-                          className="rounded-full border border-white/20 bg-black/25 px-2 py-0.5 text-[11px] text-white/80"
-                        >
-                          {tag}
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
+              {messages.filter((m) => m.role !== "system").map((msg) => (
+                <div key={msg.id} className={
+                  msg.role === "user"
+                      ? "flex justify-end"
+                      : "flex justify-start"
+                }>
+                  <div className={
+                    "max-w-[88%]"
+                  }>
+                    {msg.role !== "system" && (
+                      <div className={`mb-1.5 flex items-center gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        {msg.role === "assistant" && (
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-glow-500/30 bg-glow-500/10 text-glow-300">
+                            <SparklesIcon className="h-3.5 w-3.5" />
+                          </span>
+                        )}
+                        <span className={`text-[11px] font-medium ${msg.role === "user" ? "text-emerald-300" : "text-glow-300"}`}>
+                          {msg.role === "user" ? "You" : "AI Image Bot"}
                         </span>
-                      ))}
-                    </div>
-                  )}
+                        {msg.role === "user" && (
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/35 bg-emerald-500/20 text-emerald-100">
+                            <UserIcon className="h-3.5 w-3.5" />
+                          </span>
+                        )}
+                      </div>
+                    )}
 
-                  {message.referenceImages && message.referenceImages.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {message.referenceImages.map((item, idx) => (
-                        <button
-                          key={`${message.id}-reference-${idx}`}
-                          type="button"
-                          onClick={() => setActiveReferencePreview(item.url)}
-                          className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/20 bg-black/25 px-2.5 py-1 text-xs text-white/85"
-                        >
-                          <span aria-hidden="true">🖼</span>
-                          <span className="max-w-[170px] truncate">{item.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    {msg.role !== "system" && (
+                      <div className={
+                        msg.role === "user"
+                          ? "rounded-2xl rounded-br-md border border-emerald-400/30 bg-emerald-500/15 px-3 py-2.5 text-sm leading-relaxed text-emerald-50"
+                          : "rounded-2xl rounded-bl-md border border-night-700/70 bg-night-800/80 px-3 py-2.5 text-sm leading-relaxed text-night-100"
+                      }>
+                        {!(msg.loading && (!msg.images || msg.images.length === 0)) && (
+                          <p className="text-inherit">{msg.content}</p>
+                        )}
 
-                  {message.images && message.images.length > 0 && (
-                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      {message.images.map((src, idx) => (
-                        <figure
-                          key={`${message.id}-${src}-${idx}`}
-                          className="overflow-hidden rounded-lg border border-white/10 bg-black/20"
-                        >
-                          <Image
-                            src={src}
-                            alt={`Generated preview ${idx + 1}`}
-                            width={1200}
-                            height={1600}
-                            className="h-auto w-full object-cover"
-                          />
-                        </figure>
-                      ))}
-                    </div>
-                  )}
+                        {msg.tags && msg.tags.length > 0 && !(msg.loading && (!msg.images || msg.images.length === 0)) && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {msg.tags.map((tag) => (
+                              <span key={`${msg.id}-${tag}`} className="rounded-full border border-night-600/60 bg-night-950/60 px-2 py-0.5 font-mono text-[10px] text-night-400">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {msg.referenceImages && msg.referenceImages.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {msg.referenceImages.map((item, idx) => (
+                              <button key={`${msg.id}-ref-${idx}`} type="button" onClick={() => setActiveReferencePreview(item.url)}
+                                className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-night-600 bg-night-800 px-2 py-0.5 font-mono text-[10px] text-night-300">
+                                <span className="text-night-500">▣</span>
+                                <span className="max-w-[160px] truncate">{item.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {msg.images && msg.images.length > 0 && (
+                          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {msg.images.map((src, idx) => (
+                              <button
+                                key={`${msg.id}-img-${idx}`}
+                                type="button"
+                                onClick={() => setActiveGeneratedPreview(src)}
+                                className="overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
+                              >
+                                {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={src} alt={`Generated preview ${idx + 1}`} className="h-auto w-full object-cover" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {msg.loading && (!msg.images || msg.images.length === 0) && (
+                          <div className="mt-1 inline-flex items-center gap-2 text-xs text-glow-300">
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-glow-400 border-t-transparent" />
+                            {dict.build.generating}...
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
+
+            {/* Chat mode input */}
             {!isTemplateMode && (
-              <div className="mt-3 shrink-0 rounded-xl border border-white/10 bg-black/20 p-3">
+              <div className="shrink-0 border-t border-night-700/60 p-3">
                 <textarea
                   value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
+                  onChange={(e) => setChatInput(e.target.value)}
                   placeholder={dict.build.chatPlaceholder}
                   rows={4}
-                  className="w-full resize-y rounded-lg border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
+                  className="w-full resize-y rounded-xl border border-night-700 bg-night-950/60 px-3 py-2 text-sm text-night-100 outline-none transition placeholder:text-night-600 focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.06)]"
                 />
-                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <select
-                    value={ratio}
-                    onChange={(event) => setRatio(event.target.value)}
-                    className="rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
-                  >
-                    <option value="1:1">{dict.build.aspectRatio}: 1:1</option>
-                    <option value="3:4">{dict.build.aspectRatio}: 3:4</option>
-                    <option value="4:5">{dict.build.aspectRatio}: 4:5</option>
-                    <option value="16:9">{dict.build.aspectRatio}: 16:9</option>
-                    <option value="9:16">{dict.build.aspectRatio}: 9:16</option>
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <select value={ratio} onChange={(e) => setRatio(e.target.value)} className={selectClass}>
+                    {ASPECT_RATIOS.map((r) => <option key={r} value={r}>{dict.build.aspectRatio}: {r}</option>)}
                   </select>
-                  <select
-                    value={quality}
-                    onChange={(event) => setQuality(event.target.value as QualityKey)}
-                    className="rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white outline-none focus:border-white/35"
-                  >
-                    <option value="draft">{dict.build.quality}: {dict.build.qualityOptions.draft}</option>
-                    <option value="standard">{dict.build.quality}: {dict.build.qualityOptions.standard}</option>
-                    <option value="high">{dict.build.quality}: {dict.build.qualityOptions.high}</option>
-                    <option value="ultra">{dict.build.quality}: {dict.build.qualityOptions.ultra}</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="rounded-xl border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isGenerating ? dict.build.generating : dict.build.generateImage}
-                  </button>
+                  {hasClerkKey && authLoaded && !isSignedIn ? (
+                    <SignInButton mode="modal">
+                      <button
+                        type="button"
+                        className="rounded-xl bg-glow-500 py-2 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400"
+                      >
+                        {dict.build.generateImage}
+                      </button>
+                    </SignInButton>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { void handleGenerate(); }}
+                      disabled={isGenerating}
+                      className="rounded-xl bg-glow-500 py-2 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isGenerating ? dict.build.generating : dict.build.generateImage}
+                    </button>
+                  )}
                 </div>
+                {generateError && (
+                  <p className="mt-2 text-xs text-red-400">{generateError}</p>
+                )}
               </div>
             )}
           </section>
         </section>
       </main>
+
+      {activeGeneratedPreview && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-night-950/90 p-4" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close preview"
+            onClick={() => setActiveGeneratedPreview("")}
+          />
+          <div className="relative z-[121] max-h-[92vh] max-w-[92vw]">
+            <button
+              type="button"
+              onClick={() => { void handleDownloadImage(activeGeneratedPreview); }}
+              className="absolute right-12 top-2 rounded-full border border-night-600 bg-night-900/80 px-2.5 py-0.5 text-xs text-night-100 transition hover:border-night-400 disabled:opacity-60"
+              aria-label={locale === "en" ? "Download image" : "下载图片"}
+              disabled={isDownloadingImage}
+            >
+              {isDownloadingImage ? (locale === "en" ? "Downloading..." : "下载中...") : (locale === "en" ? "Download" : "下载")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveGeneratedPreview("")}
+              className="absolute right-2 top-2 rounded-full border border-night-600 bg-night-900/80 px-2 py-0.5 text-sm text-night-200 transition hover:border-night-400"
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={activeGeneratedPreview} alt="Generated image preview" className="max-h-[92vh] max-w-[92vw] rounded-xl border border-night-700 object-contain" />
+          </div>
+        </div>
+      )}
     </>
   );
 };
@@ -649,9 +683,5 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
 export default BuildPage;
 
 export async function getStaticProps() {
-  return {
-    props: {
-      templates: getPromptTemplates(),
-    },
-  };
+  return { props: { templates: getPromptTemplates() } };
 }

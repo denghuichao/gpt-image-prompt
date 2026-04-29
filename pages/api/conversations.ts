@@ -19,8 +19,12 @@ function resolveUserId(req: NextApiRequest): string | null {
     return "local-dev-user";
   }
 
-  const { userId } = getAuth(req);
-  return userId || null;
+  try {
+    const { userId } = getAuth(req);
+    return userId || null;
+  } catch {
+    return "local-dev-user";
+  }
 }
 
 function isValidMessageArray(value: unknown): value is StoredChatMessage[] {

@@ -1,26 +1,166 @@
-import { SignInButton, UserButton, useAuth } from "@clerk/nextjs";
+import { SignInButton, useAuth, useClerk, useUser } from "@clerk/nextjs";
+import {
+  ArrowRightOnRectangleIcon,
+  ChevronRightIcon,
+  SparklesIcon,
+  WalletIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 
-function ClerkActions({ signInLabel }: { signInLabel: string }) {
-  const { isSignedIn } = useAuth();
+function ClerkActions({
+  signInLabel,
+  creditsLabel,
+  buyCreditsLabel,
+}: {
+  signInLabel: string;
+  creditsLabel: string;
+  buyCreditsLabel: string;
+}) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const { user } = useUser();
+  const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  const fallbackText = useMemo(() => {
+    const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim();
+    if (fullName) {
+      const words = fullName.split(/\s+/).filter(Boolean);
+      if (words.length >= 2) return `${words[0][0]}${words[1][0]}`.toUpperCase();
+      return fullName.slice(0, 2).toUpperCase();
+    }
+    const email = user?.primaryEmailAddress?.emailAddress;
+    if (email) return email.slice(0, 2).toUpperCase();
+    return "U";
+  }, [user?.firstName, user?.lastName, user?.primaryEmailAddress?.emailAddress]);
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    user?.username ||
+    "User";
+  const email = user?.primaryEmailAddress?.emailAddress || "";
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    let cancelled = false;
+    async function loadCredits() {
+      try {
+        const res = await fetch("/api/credits");
+        if (!res.ok) return;
+        const data = await res.json() as { credits?: { balance?: number } };
+        if (!cancelled) setCreditBalance(data.credits?.balance ?? 0);
+      } catch {
+        // ignore
+      }
+    }
+    void loadCredits();
+    return () => { cancelled = true; };
+  }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: MouseEvent) {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onEsc);
+    return () => {
+      window.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  if (!isLoaded) {
+    return <div className="h-8 w-8 rounded-full bg-night-800 animate-pulse" />;
+  }
 
   if (isSignedIn) {
     return (
-      <UserButton
-        appearance={{
-          elements: {
-            userButtonTrigger:
-              "rounded-full transition hover:opacity-90 focus:shadow-none focus:outline-none",
-            avatarBox:
-              "h-9 w-9 border border-white/30 bg-slate-700 text-white shadow-[0_0_0_1px_rgba(0,0,0,0.28)]",
-            avatarFallback: "bg-slate-700 text-white font-semibold",
-            avatarImage: "object-cover",
-          },
-        }}
-      />
+      <div ref={menuRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-night-600 bg-amber-500 text-xs font-semibold text-white transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-glow-500/30"
+          aria-haspopup="menu"
+          aria-expanded={open}
+        >
+          {user?.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.imageUrl} alt="User avatar" className="h-full w-full object-cover" />
+          ) : (
+            <span>{fallbackText}</span>
+          )}
+        </button>
+
+        {open && (
+          <div className="animate-fade-in absolute right-0 z-[1200] mt-3 w-72 overflow-hidden rounded-2xl border border-night-700 bg-night-900/95 shadow-[0_18px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div className="border-b border-night-700/80 px-3 py-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-amber-500 text-[11px] font-semibold text-white">
+                  {user?.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.imageUrl} alt="User avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{fallbackText}</span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-night-50">{displayName}</p>
+                  {email && <p className="truncate text-xs text-night-400">{email}</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-2">
+              <div className="mb-1.5 flex items-center justify-between rounded-xl border border-night-700 bg-night-800/70 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <WalletIcon className="h-4 w-4 text-glow-400" />
+                  <span className="text-sm text-night-100">{creditsLabel}</span>
+                </div>
+                <span className="rounded-lg bg-night-900 px-2 py-0.5 font-mono text-xs text-night-100">
+                  {creditBalance ?? 0}
+                </span>
+              </div>
+
+              <Link
+                href="/pricing"
+                className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-night-100 transition hover:bg-night-800/80"
+                onClick={() => setOpen(false)}
+              >
+                <span className="flex items-center gap-2">
+                  <SparklesIcon className="h-4 w-4 text-glow-400" />
+                  {buyCreditsLabel}
+                </span>
+                <ChevronRightIcon className="h-4 w-4 text-night-500" />
+              </Link>
+
+              <button
+                type="button"
+                className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-night-100 transition hover:bg-red-500/15 hover:text-red-300"
+                onClick={async () => {
+                  setOpen(false);
+                  await signOut({ redirectUrl: "/" });
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                  Sign Out
+                </span>
+                <ChevronRightIcon className="h-4 w-4 text-night-500" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -28,7 +168,7 @@ function ClerkActions({ signInLabel }: { signInLabel: string }) {
     <SignInButton mode="modal">
       <button
         type="button"
-        className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+        className="rounded-full border border-night-600 bg-night-800 px-4 py-1.5 text-sm text-night-200 transition hover:border-night-500 hover:text-night-50"
       >
         {signInLabel}
       </button>
@@ -43,18 +183,24 @@ export default function SiteHeader() {
   const dict = t(locale);
   const isGallery = router.pathname === "/gallery";
   const [search, setSearch] = useState("");
+  const [scrolled, setScrolled] = useState(false);
 
   const navItems = [
     { href: "/", label: dict.nav.home },
     { href: "/gallery", label: dict.nav.gallery },
     { href: "/pricing", label: dict.nav.pricing },
-    { href: "/blogs", label: dict.nav.blogs },
   ];
 
   useEffect(() => {
-    if (!isGallery) {
-      return;
+    function onScroll() {
+      setScrolled(window.scrollY > 12);
     }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isGallery) return;
     const q = typeof router.query.q === "string" ? router.query.q : "";
     setSearch(q);
   }, [isGallery, router.query.q]);
@@ -62,22 +208,15 @@ export default function SiteHeader() {
   function updateGallerySearch(nextValue: string) {
     setSearch(nextValue);
     const query = nextValue.trim();
-
     void router.replace(
-      {
-        pathname: "/gallery",
-        query: query ? { q: query } : {},
-      },
+      { pathname: "/gallery", query: query ? { q: query } : {} },
       undefined,
       { shallow: true, locale },
     );
   }
 
   function switchLocale(nextLocale: "zh" | "en") {
-    if (nextLocale === locale) {
-      return;
-    }
-
+    if (nextLocale === locale) return;
     void router.push(
       { pathname: router.pathname, query: router.query },
       router.asPath,
@@ -86,29 +225,40 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[1000] border-b border-white/10 bg-black/45 backdrop-blur-2xl">
+    <header
+      className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
+        scrolled
+          ? "border-b border-night-700 bg-night-950/90 backdrop-blur-xl shadow-[0_1px_24px_rgba(0,0,0,0.4)]"
+          : "border-b border-night-800/60 bg-night-950/70 backdrop-blur-md"
+      }`}
+    >
       <div className="mx-auto flex h-[72px] w-full max-w-[1960px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" locale={locale} className="text-base font-bold uppercase tracking-[0.16em] text-white sm:text-lg">
+          <Link
+            href="/"
+            locale={locale}
+            className="font-display text-xl font-semibold italic text-night-50 transition hover:text-glow-300"
+          >
             {dict.siteName}
           </Link>
-          <nav className="flex items-center gap-3">
+
+          <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => {
               const isActive =
                 item.href === "/"
                   ? router.pathname === "/"
                   : router.pathname === item.href || router.asPath.startsWith(`${item.href}/`);
 
-              const defaultClass = isActive
-                ? "bg-white/20 text-white"
-                : "text-white/80 hover:bg-white/10 hover:text-white";
-
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   locale={locale}
-                  className={`rounded-full px-4 py-2 text-sm transition sm:text-base ${defaultClass}`}
+                  className={`rounded-full px-4 py-1.5 text-sm transition ${
+                    isActive
+                      ? "bg-glow-500/15 text-glow-300 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]"
+                      : "text-night-400 hover:bg-night-800 hover:text-night-200"
+                  }`}
                 >
                   {item.label}
                 </Link>
@@ -127,19 +277,21 @@ export default function SiteHeader() {
                 id="gallery-header-search"
                 type="text"
                 value={search}
-                onChange={(event) => updateGallerySearch(event.target.value)}
+                onChange={(e) => updateGallerySearch(e.target.value)}
                 placeholder={dict.nav.searchTemplates}
-                className="w-64 rounded-full border border-white/20 bg-black/45 px-4 py-2.5 text-sm text-white placeholder:text-white/45 outline-none transition focus:border-white/45 sm:text-base"
+                className="w-56 rounded-full border border-night-700 bg-night-900/80 px-4 py-2 text-sm text-night-100 placeholder:text-night-500 outline-none transition focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.08)] lg:w-64"
               />
             </div>
           )}
 
-          <div className="hidden items-center gap-1 rounded-full border border-white/15 bg-white/5 p-1 sm:flex">
+          <div className="hidden items-center gap-1 rounded-full border border-night-700 bg-night-900/60 p-1 sm:flex">
             <button
               type="button"
               onClick={() => switchLocale("zh")}
-              className={`rounded-full px-2.5 py-1 text-xs transition ${
-                locale === "zh" ? "bg-white text-black" : "text-white/75 hover:text-white"
+              className={`rounded-full px-3 py-1 text-xs transition ${
+                locale === "zh"
+                  ? "bg-glow-500 text-night-950 font-semibold shadow-glow-sm"
+                  : "text-night-400 hover:text-night-200"
               }`}
             >
               {dict.nav.languageZh}
@@ -147,8 +299,10 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => switchLocale("en")}
-              className={`rounded-full px-2.5 py-1 text-xs transition ${
-                locale === "en" ? "bg-white text-black" : "text-white/75 hover:text-white"
+              className={`rounded-full px-3 py-1 text-xs transition ${
+                locale === "en"
+                  ? "bg-glow-500 text-night-950 font-semibold shadow-glow-sm"
+                  : "text-night-400 hover:text-night-200"
               }`}
             >
               {dict.nav.languageEn}
@@ -156,9 +310,13 @@ export default function SiteHeader() {
           </div>
 
           {hasClerkKey ? (
-            <ClerkActions signInLabel={dict.nav.signIn} />
+            <ClerkActions
+              signInLabel={dict.nav.signIn}
+              creditsLabel={locale === "en" ? "Current Credits" : "当前积分"}
+              buyCreditsLabel={locale === "en" ? "Buy Credits" : "购买积分"}
+            />
           ) : (
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/55">
+            <span className="rounded-full border border-night-700/60 bg-night-900/40 px-3 py-1 text-xs text-night-600">
               {dict.nav.clerkNotConfigured}
             </span>
           )}

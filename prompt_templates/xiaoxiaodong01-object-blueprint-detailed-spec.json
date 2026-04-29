@@ -1,0 +1,23 @@
+{
+  "title": "OBJECT 蓝图实拍叠加（高信息密度版）",
+  "desc": "强调零件、材料、尺寸、功能注释层的高信息密度版本，适合讲解型建筑图。",
+  "prompt_template": "请生成一张{shot_type}的真实照片，主体为{subject}。画面干净明亮，背景{background_style}。禁止插图质感。叠加技术蓝图层：白色结构线、箭头、尺寸标注、命名标签，并补充{annotation_focus}。左上角草图框标题为“{object_label}”。整体构图要优雅、清晰、信息量高，比例为{ratio}，并保持{mood}视觉气质。",
+  "images": [
+    "/prompt_images/HHAIOq6bcAAuLzX-real.jpg",
+    "/prompt_images/HHAFHkqaEAA5ml4-real.jpg"
+  ],
+  "tags": ["architecture", "annotation", "technical-overlay", "real-photo"],
+  "author": "xiaoxiaodong01",
+  "source_url": "https://x.com/xiaoxiaodong01/status/2049148894249173005",
+  "style": "High-Information Architecture Explainer",
+  "final_prompt": "请生成一张广角环境实拍风的真实照片，主体为中国古建筑群中的太和殿。画面干净明亮，背景简洁但具层次。禁止插图质感。叠加技术蓝图层：白色结构线、箭头、尺寸标注、命名标签，并补充零件、材料、尺寸与功能的多层说明。左上角草图框标题为“OBJECT”。整体构图要优雅、清晰、信息量高，比例为1:1，并保持现代、精致且有活力的视觉气质。",
+  "variables": [
+    { "key": "shot_type", "description": "镜头与拍摄方式", "example": "广角环境实拍风" },
+    { "key": "subject", "description": "主体对象", "example": "中国古建筑群中的太和殿" },
+    { "key": "background_style", "description": "背景风格", "example": "简洁但有层次" },
+    { "key": "annotation_focus", "description": "注释重点", "example": "零件、材料、尺寸与功能的多层说明" },
+    { "key": "object_label", "description": "左上角草图框标题", "example": "OBJECT" },
+    { "key": "ratio", "description": "比例", "example": "1:1" },
+    { "key": "mood", "description": "视觉气质", "example": "现代、精致且有活力" }
+  ]
+}

@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+export type ImageModel = "gemini-2.0-flash-preview-image-generation" | "gpt-image-2";
+
 export interface PromptVariable {
   key: string;
   description: string;
@@ -18,8 +20,7 @@ export interface PromptTemplateRaw {
   style?: string;
   final_prompt?: string;
   variables?: PromptVariable[];
-  reference_image_count?: number;
-  "参考图片数量"?: number;
+  default_model?: ImageModel;
 }
 
 export interface PromptTemplate extends PromptTemplateRaw {
@@ -61,17 +62,9 @@ function parseTemplateFile(filePath: string): PromptTemplate {
 
   assertValidTemplate(raw, fileName);
 
-  const normalizedReferenceCount =
-    typeof raw.reference_image_count === "number"
-      ? raw.reference_image_count
-      : typeof raw["参考图片数量"] === "number"
-        ? raw["参考图片数量"]
-        : 0;
-
   return {
     slug,
     ...raw,
-    reference_image_count: normalizedReferenceCount,
   };
 }
 

@@ -1,9 +1,9 @@
-import Document, { Head, Html, Main, NextScript } from "next/document";
+import Document, { Head, Html, Main, NextScript, DocumentContext, DocumentInitialProps } from "next/document";
 
 class MyDocument extends Document {
   render() {
     return (
-      <Html>
+      <Html lang={this.props.locale ?? "zh"}>
         <Head>
           <link rel="icon" href="/favicon.ico" />
           <meta

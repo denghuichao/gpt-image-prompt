@@ -27,10 +27,7 @@ const GalleryPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) =
 
   const filteredTemplates = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) {
-      return templates;
-    }
-
+    if (!normalized) return templates;
     return templates.filter((template) => buildSearchText(template).includes(normalized));
   }, [query, templates]);
 
@@ -43,15 +40,18 @@ const GalleryPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) =
 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
         {filteredTemplates.length === 0 ? (
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center text-white/75">
-            {dict.gallery.noResults} "{query}".
+          <section className="rounded-2xl border border-night-700 bg-night-900/60 p-16 text-center">
+            <p className="font-display text-2xl italic text-night-500">
+              {dict.gallery.noResults}{" "}
+              <span className="text-night-200">"{query}"</span>
+            </p>
           </section>
         ) : (
           <section className="columns-1 gap-5 sm:columns-2 xl:columns-3 2xl:columns-4">
             {filteredTemplates.map((template) => (
               <article
                 key={template.slug}
-                className="group relative mb-5 break-inside-avoid overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-highlight"
+                className="group relative mb-5 break-inside-avoid overflow-hidden rounded-2xl border border-night-700 bg-night-800 shadow-card transition-all duration-300 hover:border-glow-500/30 hover:shadow-card-hover"
               >
                 <Link href={`/prompts/${template.slug}`} locale={locale} className="block">
                   <div className="relative">
@@ -60,22 +60,24 @@ const GalleryPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) =
                       alt={`${template.title} sample image`}
                       width={1200}
                       height={1600}
-                      className="h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04]"
                     />
 
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10 opacity-90" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/20 to-transparent" />
 
-                    <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                    {/* Default info — fades out on hover */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300 group-hover:opacity-0">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-night-400">
                         {template.style || dict.common.uncategorized}
                       </p>
-                      <h2 className="mt-1 text-lg font-semibold leading-tight">{template.title}</h2>
-                      <p className="mt-2 line-clamp-2 text-sm text-white/75">{template.desc}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <h2 className="mt-1.5 font-display text-xl font-semibold italic leading-tight text-night-50">
+                        {template.title}
+                      </h2>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {template.tags.slice(0, 3).map((tag) => (
                           <span
                             key={`${template.slug}-${tag}`}
-                            className="rounded-full border border-white/25 bg-black/30 px-2.5 py-1 text-xs text-white/85"
+                            className="rounded-full border border-night-600/60 bg-night-950/70 px-2.5 py-0.5 font-mono text-[10px] text-night-300"
                           >
                             #{tag}
                           </span>
@@ -83,13 +85,18 @@ const GalleryPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) =
                       </div>
                     </div>
 
-                    <div className="absolute inset-0 flex items-end bg-black/85 p-4 opacity-0 transition duration-300 group-hover:opacity-100">
-                      <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
-                          {dict.common.finalPromptPreview}
-                        </p>
-                        <p className="line-clamp-6 text-sm leading-relaxed text-white/90">
-                          {template.final_prompt || template.prompt_template}
+                    {/* Hover overlay — full prompt preview */}
+                    <div className="absolute inset-0 flex flex-col justify-end rounded-2xl bg-night-950/94 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-night-500">
+                        {dict.common.finalPromptPreview}
+                      </p>
+                      <p className="line-clamp-8 font-mono text-[11px] leading-relaxed text-night-200">
+                        {template.final_prompt || template.prompt_template}
+                      </p>
+                      <div className="mt-4 flex items-center gap-2 border-t border-night-700/60 pt-3">
+                        <span className="h-1.5 w-1.5 rounded-full bg-glow-500" />
+                        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-glow-400">
+                          View Template →
                         </p>
                       </div>
                     </div>

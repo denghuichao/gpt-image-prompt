@@ -1,0 +1,62 @@
+{
+  "plans": [
+    {
+      "key": "starter",
+      "name_zh": "入门积分包",
+      "name_en": "Starter Pack",
+      "label_zh": "一次性购买",
+      "label_en": "one-time",
+      "price_usd": 9.9,
+      "credits": 100,
+      "highlight": true,
+      "creem_product_id": "prod_2oqbwUbrbJIsNehobyytCS",
+      "features_zh": [
+        "包含免费版全部功能",
+        "100 积分",
+        "每次生图消耗 1 积分",
+        "支持 Gemini 与 GPT Image",
+        "支持参考图输入",
+        "保存对话历史",
+        "支持全部画幅比例与质量档位"
+      ],
+      "features_en": [
+        "Everything in Free",
+        "100 credits",
+        "1 credit per image generation",
+        "Gemini + GPT Image support",
+        "Reference-image input support",
+        "Conversation history",
+        "All aspect ratios and quality levels"
+      ]
+    },
+    {
+      "key": "pro",
+      "name_zh": "专业积分包",
+      "name_en": "Pro Pack",
+      "label_zh": "一次性购买",
+      "label_en": "one-time",
+      "price_usd": 29.9,
+      "credits": 400,
+      "highlight": false,
+      "creem_product_id": "prod_4DKAtjY2D4zMYtsofFxfAX",
+      "features_zh": [
+        "包含入门包全部功能",
+        "400 积分",
+        "每次生图消耗 1 积分",
+        "支持 Gemini 与 GPT Image",
+        "支持参考图输入",
+        "保存对话历史",
+        "支持全部画幅比例与质量档位"
+      ],
+      "features_en": [
+        "Everything in Starter",
+        "400 credits",
+        "1 credit per image generation",
+        "Gemini + GPT Image support",
+        "Reference-image input support",
+        "Conversation history",
+        "All aspect ratios and quality levels"
+      ]
+    }
+  ]
+}
