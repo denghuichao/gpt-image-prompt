@@ -1,8 +1,8 @@
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/router";
 import CopyButton from "../../components/CopyButton";
 import { resolveLocale, t } from "../../utils/i18n";
@@ -31,6 +31,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
   const ogImage = template.images[0] || absoluteUrl("/prompt_images/1.jpeg", localeTyped);
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
   const openLightbox = (idx: number) => setLightboxIndex(idx);
   const closeLightbox = () => setLightboxIndex(null);
@@ -42,6 +43,39 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
   const next = useCallback(() => {
     setLightboxIndex((i) => (i === null ? null : (i + 1) % images.length));
   }, [images.length]);
+
+  async function handleDownloadImage(src: string) {
+    if (!src || isDownloadingImage) return;
+    setIsDownloadingImage(true);
+    try {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error("download failed");
+      const blob = await res.blob();
+      const ext = blob.type.includes("jpeg") || blob.type.includes("jpg")
+        ? "jpg"
+        : blob.type.includes("webp")
+          ? "webp"
+          : "png";
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `template-sample-${Date.now()}.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const link = document.createElement("a");
+      link.href = src;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      setIsDownloadingImage(false);
+    }
+  }
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -192,11 +226,12 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                   className="group mb-3 cursor-zoom-in overflow-hidden rounded-xl border border-night-700 break-inside-avoid"
                   onClick={() => openLightbox(idx)}
                 >
-                  <Image
+                  {/* Use native img so right-click copy keeps original source URL. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={imageUrl}
                     alt={`${template.title} sample ${idx + 1}`}
-                    width={1200}
-                    height={1600}
+                    loading="lazy"
                     className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-90"
                   />
                 </figure>
@@ -208,51 +243,62 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <div
-          className="fixed inset-0 z-[2000] flex items-center justify-center bg-night-950/92 backdrop-blur-sm"
-          onClick={closeLightbox}
-        >
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-night-950/90 p-4" role="dialog" aria-modal="true">
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); prev(); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/80 p-3 text-night-200 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50 sm:left-8"
-            aria-label="Previous"
-          >
-            ←
-          </button>
-
-          <div
-            className="relative mx-16 max-h-[90vh] max-w-4xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={images[lightboxIndex]}
-              alt={`${template.title} sample ${lightboxIndex + 1}`}
-              width={1200}
-              height={1600}
-              className="max-h-[90vh] w-auto rounded-2xl object-contain shadow-[0_0_80px_rgba(0,0,0,0.8)]"
-            />
-            <p className="mt-3 text-center font-mono text-[11px] text-night-500">
-              {lightboxIndex + 1} / {images.length}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); next(); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/80 p-3 text-night-200 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50 sm:right-8"
-            aria-label="Next"
-          >
-            →
-          </button>
-
-          <button
-            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close preview"
             onClick={closeLightbox}
-            className="absolute right-4 top-4 rounded-full border border-night-600 bg-night-900/80 px-3 py-1.5 text-xs text-night-400 transition hover:text-night-50 sm:right-8"
-          >
-            esc
-          </button>
+          />
+          <div className="relative z-[121] max-h-[92vh] max-w-[92vw]">
+            <button
+              type="button"
+              onClick={() => { void handleDownloadImage(images[lightboxIndex]); }}
+              className="absolute right-12 top-2 rounded-full border border-night-600 bg-night-900/80 px-2.5 py-0.5 text-xs text-night-100 transition hover:border-night-400 disabled:opacity-60"
+              disabled={isDownloadingImage}
+              aria-label={dict.build.downloadImageAria}
+            >
+              <span className="inline-flex items-center gap-1">
+                <ArrowDownTrayIcon className="h-3 w-3" />
+                {isDownloadingImage ? dict.build.downloading : dict.build.download}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="absolute right-2 top-2 rounded-full border border-night-600 bg-night-900/80 px-2 py-0.5 text-sm text-night-200 transition hover:border-night-400"
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/85 px-3 py-1.5 text-sm text-night-100 transition hover:border-night-400"
+                  aria-label="Previous image"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={next}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/85 px-3 py-1.5 text-sm text-night-100 transition hover:border-night-400"
+                  aria-label="Next image"
+                >
+                  →
+                </button>
+              </>
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={images[lightboxIndex]} alt={`${template.title} sample ${lightboxIndex + 1}`} className="max-h-[92vh] max-w-[92vw] rounded-xl border border-night-700 object-contain" />
+            {images.length > 1 && (
+              <p className="mt-2 text-center text-xs text-night-300">
+                {lightboxIndex + 1} / {images.length}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </>

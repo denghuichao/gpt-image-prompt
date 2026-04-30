@@ -116,7 +116,8 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const [chatInput, setChatInput]                   = useState("");
   const [referenceImages, setReferenceImages]       = useState<Array<{ name: string; url: string }>>([]);
   const [activeReferencePreview, setActiveReferencePreview] = useState<string>("");
-  const [activeGeneratedPreview, setActiveGeneratedPreview] = useState<string>("");
+  const [activeGeneratedPreviewImages, setActiveGeneratedPreviewImages] = useState<string[]>([]);
+  const [activeGeneratedPreviewIndex, setActiveGeneratedPreviewIndex] = useState<number>(-1);
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
   const [hasLoadedConversation, setHasLoadedConversation] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -344,6 +345,38 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     setActiveReferencePreview("");
   }
 
+  const activeGeneratedPreview =
+    activeGeneratedPreviewIndex >= 0
+      ? (activeGeneratedPreviewImages[activeGeneratedPreviewIndex] || "")
+      : "";
+
+  function openGeneratedPreview(images: string[], startIndex: number) {
+    const validImages = images.filter(Boolean);
+    if (!validImages.length) return;
+    const nextIndex = Math.min(Math.max(startIndex, 0), validImages.length - 1);
+    setActiveGeneratedPreviewImages(validImages);
+    setActiveGeneratedPreviewIndex(nextIndex);
+  }
+
+  function closeGeneratedPreview() {
+    setActiveGeneratedPreviewImages([]);
+    setActiveGeneratedPreviewIndex(-1);
+  }
+
+  function showPrevGeneratedPreview() {
+    setActiveGeneratedPreviewIndex((prev) => {
+      if (prev < 0 || activeGeneratedPreviewImages.length === 0) return prev;
+      return (prev - 1 + activeGeneratedPreviewImages.length) % activeGeneratedPreviewImages.length;
+    });
+  }
+
+  function showNextGeneratedPreview() {
+    setActiveGeneratedPreviewIndex((prev) => {
+      if (prev < 0 || activeGeneratedPreviewImages.length === 0) return prev;
+      return (prev + 1) % activeGeneratedPreviewImages.length;
+    });
+  }
+
   async function handleDownloadImage(src: string) {
     if (!src || isDownloadingImage) return;
     setIsDownloadingImage(true);
@@ -392,6 +425,17 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     }, 250);
     return () => window.clearTimeout(timeout);
   }, [hasLoadedConversation, messages, templateKey]);
+
+  useEffect(() => {
+    if (!activeGeneratedPreview) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") closeGeneratedPreview();
+      if (e.key === "ArrowLeft" && activeGeneratedPreviewImages.length > 1) showPrevGeneratedPreview();
+      if (e.key === "ArrowRight" && activeGeneratedPreviewImages.length > 1) showNextGeneratedPreview();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeGeneratedPreview, activeGeneratedPreviewImages.length]);
 
   return (
     <>
@@ -636,7 +680,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                                 key={`${msg.id}-img-${idx}`}
                                 className="relative overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
                               >
-                                <button type="button" onClick={() => setActiveGeneratedPreview(src)} className="block w-full bg-night-900 text-left">
+                                <button type="button" onClick={() => openGeneratedPreview(msg.images || [], idx)} className="block w-full bg-night-900 text-left">
                                   {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
@@ -729,7 +773,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
             type="button"
             className="absolute inset-0 cursor-default"
             aria-label="Close preview"
-            onClick={() => setActiveGeneratedPreview("")}
+            onClick={closeGeneratedPreview}
           />
           <div className="relative z-[121] max-h-[92vh] max-w-[92vw]">
             <button
@@ -746,14 +790,39 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
             </button>
             <button
               type="button"
-              onClick={() => setActiveGeneratedPreview("")}
+              onClick={closeGeneratedPreview}
               className="absolute right-2 top-2 rounded-full border border-night-600 bg-night-900/80 px-2 py-0.5 text-sm text-night-200 transition hover:border-night-400"
               aria-label="Close preview"
             >
               ×
             </button>
+            {activeGeneratedPreviewImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={showPrevGeneratedPreview}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/85 px-3 py-1.5 text-sm text-night-100 transition hover:border-night-400"
+                  aria-label="Previous image"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={showNextGeneratedPreview}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-night-600 bg-night-900/85 px-3 py-1.5 text-sm text-night-100 transition hover:border-night-400"
+                  aria-label="Next image"
+                >
+                  →
+                </button>
+              </>
+            )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={activeGeneratedPreview} alt="Generated image preview" className="max-h-[92vh] max-w-[92vw] rounded-xl border border-night-700 object-contain" />
+            {activeGeneratedPreviewImages.length > 1 && (
+              <p className="mt-2 text-center text-xs text-night-300">
+                {activeGeneratedPreviewIndex + 1} / {activeGeneratedPreviewImages.length}
+              </p>
+            )}
           </div>
         </div>
       )}
