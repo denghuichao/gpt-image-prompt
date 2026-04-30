@@ -9,6 +9,7 @@ import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
+import { tryFormatJsonPrompt } from "../utils/jsonPrompt";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
 import { absoluteUrl, buildHrefLang } from "../utils/seo";
 const ASPECT_RATIOS = ["auto", "21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"] as const;
@@ -73,20 +74,6 @@ function renderHighlightedPromptTemplate(templatePrompt: string) {
       </span>
     );
   });
-}
-
-function tryFormatJsonPrompt(input: string) {
-  const raw = String(input || "").trim();
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return JSON.stringify(parsed, null, 2);
-    }
-  } catch {
-    // not a valid JSON prompt template
-  }
-  return null;
 }
 
 function resolveImageGridColsClass(count: number) {

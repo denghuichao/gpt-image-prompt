@@ -629,7 +629,7 @@ const ZH: I18nDict = {
   },
   landing: {
     heroEyebrow: "AI 生图 Prompt 系统",
-    heroTitle: "更好的 AI 图像，始于",
+    heroTitle: "更好的 AI 绘图，始于",
     heroTitleAccent: "更好的 Prompt",
     heroDesc: "持续增长的海量结构化 Prompt 模板库，覆盖主流 AI 生图场景 — 浏览、填写变量、一键生成高质量提示词。",
     ctaGallery: "浏览模板库",

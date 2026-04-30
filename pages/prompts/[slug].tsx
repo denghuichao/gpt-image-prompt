@@ -9,6 +9,7 @@ import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import CopyButton from "../../components/CopyButton";
 import { resolveLocale, t } from "../../utils/i18n";
+import { tryFormatJsonPrompt } from "../../utils/jsonPrompt";
 import {
   getPromptTemplateBySlug,
   type PromptTemplate,
@@ -20,20 +21,6 @@ function normalizePromptText(input: string) {
     .replace(/\r\n/g, "\n")
     .replace(/\\r\\n/g, "\n")
     .replace(/\\n/g, "\n");
-}
-
-function tryFormatJsonPrompt(input: string) {
-  const raw = String(input || "").trim();
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return JSON.stringify(parsed, null, 2);
-    }
-  } catch {
-    // not a valid JSON prompt template
-  }
-  return null;
 }
 
 const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) => {
