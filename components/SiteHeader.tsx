@@ -196,6 +196,7 @@ function ClerkActions({
 
 export default function SiteHeader() {
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
@@ -219,6 +220,7 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
+    if (!isLoaded) return;
     let cancelled = false;
     async function checkAdmin() {
       try {
@@ -232,7 +234,7 @@ export default function SiteHeader() {
     }
     void checkAdmin();
     return () => { cancelled = true; };
-  }, []);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (!isGallery) return;

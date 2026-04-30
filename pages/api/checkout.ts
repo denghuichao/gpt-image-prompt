@@ -1,53 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAuth } from "@clerk/nextjs/server";
-import { verifyToken } from "@clerk/backend";
 import { pricingConfig } from "../../utils/pricingConfig";
+import { resolveRequestUserId } from "../../utils/requestAuth";
 import {
   createPurchaseOrder,
   markPurchaseCheckoutCreated,
   markPurchaseFailed,
 } from "../../utils/creditsStore";
-
-function getBearerToken(req: NextApiRequest): string | null {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return null;
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme?.toLowerCase() !== "bearer" || !token) return null;
-  return token;
-}
-
-async function resolveUserId(req: NextApiRequest): Promise<string | null> {
-  const hasClerk = Boolean(
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-      process.env.CLERK_SECRET_KEY,
-  );
-  if (!hasClerk) return "local-dev-user";
-
-  try {
-    const { userId } = getAuth(req);
-    if (userId) return userId;
-  } catch {
-    // fall through to bearer verification
-  }
-
-  const bearer = getBearerToken(req);
-  if (!bearer) return null;
-  try {
-    const verified = await verifyToken(bearer, {
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
-    const sub =
-      typeof verified.data === "object" &&
-      verified.data !== null &&
-      "sub" in verified.data &&
-      typeof (verified.data as { sub?: unknown }).sub === "string"
-        ? (verified.data as { sub: string }).sub
-        : null;
-    return typeof sub === "string" && sub.length > 0 ? sub : null;
-  } catch {
-    return null;
-  }
-}
 
 const CREEM_BASE_URL =
   process.env.NODE_ENV === "production"
@@ -63,8 +21,26 @@ export default async function handler(
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  const userId = await resolveUserId(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  const auth = await resolveRequestUserId(req);
+  if (!auth.userId) {
+    const reason = auth.via === "none" ? auth.reason : "unknown";
+    console.error("[checkout.auth] unauthorized", {
+      reason,
+      host: req.headers.host,
+      origin: req.headers.origin,
+      referer: req.headers.referer,
+      hasAuthorizationHeader: Boolean(req.headers.authorization),
+      nodeEnv: process.env.NODE_ENV,
+    });
+    return res.status(401).json({ error: "Unauthorized", reason });
+  }
+  const userId = auth.userId;
+  console.log("[checkout.auth] resolved user", {
+    via: auth.via,
+    userIdPrefix: userId.slice(0, 8),
+    host: req.headers.host,
+    origin: req.headers.origin,
+  });
 
   const { planKey } = req.body as { planKey?: string };
   const plan = pricingConfig.plans.find((p) => p.key === planKey);
@@ -79,6 +55,13 @@ export default async function handler(
     process.env.NEXT_PUBLIC_APP_URL ?? `http://localhost:3000`;
 
   const requestId = `checkout_${userId}_${plan.key}_${Date.now()}`;
+  console.log("[checkout.create] creating order", {
+    host: req.headers.host,
+    requestId,
+    planKey: plan.key,
+    productId: plan.creem_product_id,
+    credits: plan.credits,
+  });
 
   await createPurchaseOrder({
     userId,
@@ -111,11 +94,23 @@ export default async function handler(
 
   if (!creemRes.ok) {
     const text = await creemRes.text();
+    console.error("[checkout.create] creem create failed", {
+      host: req.headers.host,
+      requestId,
+      status: creemRes.status,
+      body: text,
+    });
     await markPurchaseFailed(requestId, { source: "creem_create_checkout", error: text });
     return res.status(502).json({ error: `Creem error: ${text}` });
   }
 
   const data = await creemRes.json() as { checkout_url?: string; id?: string };
+  console.log("[checkout.create] creem create success", {
+    host: req.headers.host,
+    requestId,
+    checkoutId: data.id,
+    hasCheckoutUrl: Boolean(data.checkout_url),
+  });
   await markPurchaseCheckoutCreated(requestId, {
     checkoutId: data.id,
     meta: { checkoutUrl: data.checkout_url ?? null },

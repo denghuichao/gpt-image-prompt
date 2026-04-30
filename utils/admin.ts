@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
-import { getAuth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
+import { resolveRequestUserId } from "./requestAuth";
 
 function parseAdminEmails(): string[] {
   return String(process.env.ADMIN_EMAILS || "")
@@ -23,22 +24,34 @@ export async function resolveUserEmailFromRequest(req: NextApiRequest): Promise<
   );
   if (!hasClerk) return "local-dev-user@example.com";
 
-  let userId: string | null = null;
-  try {
-    const auth = getAuth(req);
-    userId = auth.userId ?? null;
-  } catch {
+  const auth = await resolveRequestUserId(req);
+  const userId = auth.userId;
+  if (!userId) {
+    console.error("[admin.resolveEmail] no user id from auth", {
+      authVia: auth.via,
+      authReason: auth.via === "none" ? auth.reason : undefined,
+      host: req.headers.host,
+    });
     return null;
   }
-  if (!userId) return null;
 
   try {
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
     const primaryId = user.primaryEmailAddressId;
     const primary = user.emailAddresses.find((e) => e.id === primaryId) || user.emailAddresses[0];
-    return primary?.emailAddress?.toLowerCase() || null;
+    const email = primary?.emailAddress?.toLowerCase() || null;
+    console.log("[admin.resolveEmail] resolved", {
+      userIdPrefix: userId.slice(0, 8),
+      email,
+      host: req.headers.host,
+    });
+    return email;
   } catch {
+    console.error("[admin.resolveEmail] clerk lookup failed", {
+      userIdPrefix: userId.slice(0, 8),
+      host: req.headers.host,
+    });
     return null;
   }
 }
@@ -49,6 +62,11 @@ export async function isAdminRequest(req: NextApiRequest): Promise<boolean> {
   if (admins.length === 0) return true;
 
   const email = await resolveUserEmailFromRequest(req);
-  if (!email) return false;
-  return admins.includes(email.toLowerCase());
+  if (!email) {
+    console.log("[admin.check] deny: email missing", { host: req.headers.host, admins });
+    return false;
+  }
+  const ok = admins.includes(email.toLowerCase());
+  console.log("[admin.check] result", { email, ok, host: req.headers.host });
+  return ok;
 }

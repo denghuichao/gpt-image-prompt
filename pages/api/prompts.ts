@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAuth } from "@clerk/nextjs/server";
 import { randomUUID } from "crypto";
 import {
   getPromptTemplates,
@@ -10,6 +9,7 @@ import {
 import { supabaseAdmin, SUPABASE_PROMPT_IMAGES_BUCKET } from "../../utils/supabase";
 import { isAdminRequest } from "../../utils/admin";
 import { clearPromptPageCache, getPromptPageCache, setPromptPageCache } from "../../utils/promptPageCache";
+import { resolveRequestUserId } from "../../utils/requestAuth";
 
 function slugify(input: string) {
   return input
@@ -19,20 +19,6 @@ function slugify(input: string) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function resolveUserId(req: NextApiRequest): string | null {
-  const hasClerk = Boolean(
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-      process.env.CLERK_SECRET_KEY,
-  );
-  if (!hasClerk) return "local-dev-user";
-  try {
-    const { userId } = getAuth(req);
-    return userId ?? null;
-  } catch {
-    return null;
-  }
 }
 
 type CreatePromptBody = {
@@ -147,8 +133,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const userId = resolveUserId(req);
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const auth = await resolveRequestUserId(req);
+    if (!auth.userId) return res.status(401).json({ error: "Unauthorized" });
     const isAdmin = await isAdminRequest(req);
     if (!isAdmin) return res.status(403).json({ error: "Forbidden: admin only" });
 

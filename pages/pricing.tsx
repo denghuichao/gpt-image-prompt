@@ -155,6 +155,14 @@ const PricingPage: NextPage = () => {
     setBuyError("");
     try {
       const token = hasClerkKey ? await getToken() : null;
+      if (hasClerkKey && isSignedIn && !token) {
+        setBuyError(
+          isEn
+            ? "Auth token not ready. Please refresh and try again."
+            : "登录态令牌尚未就绪，请刷新页面后重试。",
+        );
+        return;
+      }
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
@@ -163,9 +171,10 @@ const PricingPage: NextPage = () => {
         },
         body: JSON.stringify({ planKey }),
       });
-      const data = await res.json() as { checkoutUrl?: string; error?: string };
+      const data = await res.json() as { checkoutUrl?: string; error?: string; reason?: string };
       if (!res.ok || !data.checkoutUrl) {
-        setBuyError(data.error ?? "Failed to create checkout");
+        const reason = data.reason ? ` (${data.reason})` : "";
+        setBuyError((data.error ?? "Failed to create checkout") + reason);
         return;
       }
       window.location.href = data.checkoutUrl;
