@@ -7,7 +7,7 @@ export default function SiteFooter() {
   const locale = resolveLocale(router.locale);
   const isEn = locale === "en";
   const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@gptimageprompt.xyz";
-  const supportXUrl = process.env.NEXT_PUBLIC_SUPPORT_X_URL || "https://x.com/xiaoxiaodong01";
+  const supportXUrl = process.env.NEXT_PUBLIC_SUPPORT_X_URL || "https://x.com/LouwlouAiDev";
 
   return (
     <footer className="border-t border-night-800/70 bg-night-950/70">
