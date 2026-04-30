@@ -3,6 +3,9 @@ import Head from "next/head";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import CopyButton from "../../components/CopyButton";
 import { resolveLocale, t } from "../../utils/i18n";
@@ -135,7 +138,11 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
               <h1 className="mt-2 font-display text-3xl font-semibold italic leading-tight text-night-50 sm:text-4xl">
                 {template.title}
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-night-400">{template.desc}</p>
+              <div className="mt-3 max-w-none text-sm leading-relaxed text-night-300 [&_a]:text-glow-300 [&_a]:underline [&_a]:decoration-glow-500/30 [&_blockquote]:border-l-2 [&_blockquote]:border-night-700 [&_blockquote]:pl-4 [&_blockquote]:text-night-400 [&_code]:rounded [&_code]:bg-night-900 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:mt-5 [&_h1]:font-display [&_h1]:text-2xl [&_h1]:italic [&_h1]:text-night-50 [&_h2]:mt-4 [&_h2]:font-display [&_h2]:text-xl [&_h2]:italic [&_h2]:text-night-50 [&_h3]:mt-4 [&_h3]:font-display [&_h3]:text-lg [&_h3]:italic [&_h3]:text-night-100 [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-5 [&_p]:my-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5">
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                  {template.desc || ""}
+                </ReactMarkdown>
+              </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {template.tags.map((tag) => (
                   <span

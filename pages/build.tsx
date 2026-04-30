@@ -3,6 +3,9 @@ import Head from "next/head";
 import Image from "next/image";
 import { SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowDownTrayIcon, SparklesIcon, UserIcon } from "@heroicons/react/24/solid";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
@@ -495,7 +498,11 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       </button>
                       {isTemplateInfoExpanded && (
                         <div className="border-t border-night-700/60 px-3 py-3">
-                          <p className="text-xs leading-relaxed text-night-400">{activeTemplate.desc}</p>
+                          <div className="max-w-none text-xs leading-relaxed text-night-400 [&_a]:text-glow-300 [&_a]:underline [&_a]:decoration-glow-500/30 [&_blockquote]:border-l-2 [&_blockquote]:border-night-700 [&_blockquote]:pl-3 [&_blockquote]:text-night-500 [&_code]:rounded [&_code]:bg-night-900 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:mt-4 [&_h1]:font-display [&_h1]:text-base [&_h1]:italic [&_h1]:text-night-100 [&_h2]:mt-3 [&_h2]:font-display [&_h2]:text-sm [&_h2]:italic [&_h2]:text-night-100 [&_h3]:mt-3 [&_h3]:font-display [&_h3]:text-sm [&_h3]:italic [&_h3]:text-night-100 [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:pl-4 [&_p]:my-1.5 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-4">
+                            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                              {activeTemplate.desc || ""}
+                            </ReactMarkdown>
+                          </div>
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {(activeTemplate.tags || []).slice(0, 5).map((tag) => (
                               <span key={`${activeTemplate.slug}-${tag}`} className="rounded-full border border-night-600/60 bg-night-950/60 px-2 py-0.5 font-mono text-[10px] text-night-400">
