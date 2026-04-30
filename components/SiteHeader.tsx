@@ -209,6 +209,7 @@ export default function SiteHeader() {
     { href: "/", label: dict.nav.home },
     { href: "/gallery", label: dict.nav.gallery },
     { href: "/pricing", label: dict.nav.pricing },
+    { href: "/blogs", label: dict.nav.blogs },
   ];
 
   useEffect(() => {

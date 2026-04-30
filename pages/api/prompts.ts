@@ -80,43 +80,12 @@ async function uploadTemplateImage(base64: string, slug: string, idx: number) {
   return data.publicUrl;
 }
 
-async function uploadTemplateImageFromUrl(url: string, slug: string, idx: number) {
+function normalizeRemoteImageUrl(url: string) {
   const trimmed = url.trim();
   if (!/^https?:\/\//i.test(trimmed)) {
     throw new Error(`Invalid image URL: ${trimmed}`);
   }
-
-  const res = await fetch(trimmed);
-  if (!res.ok) {
-    throw new Error(`Failed to download image URL (${res.status}): ${trimmed}`);
-  }
-
-  const contentType = res.headers.get("content-type") || "image/jpeg";
-  const ext = contentType.includes("png")
-    ? "png"
-    : contentType.includes("webp")
-      ? "webp"
-      : "jpg";
-  const bytes = Buffer.from(await res.arrayBuffer());
-
-  const safeSlug = toStorageSafeSegment(slug);
-  const path = `templates/${safeSlug}/${Date.now()}_url_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
-  const { error } = await supabaseAdmin
-    .storage
-    .from(SUPABASE_PROMPT_IMAGES_BUCKET)
-    .upload(path, bytes, {
-      contentType,
-      upsert: false,
-    });
-
-  if (error) throw new Error(`Upload remote image failed: ${error.message}`);
-
-  const { data } = supabaseAdmin
-    .storage
-    .from(SUPABASE_PROMPT_IMAGES_BUCKET)
-    .getPublicUrl(path);
-  if (!data?.publicUrl) throw new Error("Failed to resolve remote image URL");
-  return data.publicUrl;
+  return trimmed;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -171,7 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         images.push(url);
       }
       for (let i = 0; i < imageUrls.length; i += 1) {
-        const url = await uploadTemplateImageFromUrl(imageUrls[i], slug, i);
+        const url = normalizeRemoteImageUrl(imageUrls[i]);
         images.push(url);
       }
 

@@ -1,5 +1,6 @@
 import type { GetServerSideProps } from "next";
 import { getPromptTemplates } from "../utils/promptTemplates";
+import { getAllPublishedBlogPosts } from "../utils/blog";
 import { getSiteUrl, localePath } from "../utils/seo";
 
 const SitemapXml = () => null;
@@ -19,7 +20,7 @@ function buildUrl(loc: string, lastmod?: string) {
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const siteUrl = getSiteUrl();
-  const staticRoutes = ["/", "/gallery", "/pricing", "/build", "/privacy", "/terms"];
+  const staticRoutes = ["/", "/gallery", "/pricing", "/build", "/blogs", "/privacy", "/terms"];
 
   const entries: string[] = [];
 
@@ -33,6 +34,13 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     const path = `/prompts/${item.slug}`;
     entries.push(buildUrl(`${siteUrl}${localePath(path, "zh")}`));
     entries.push(buildUrl(`${siteUrl}${localePath(path, "en")}`));
+  }
+
+  const posts = getAllPublishedBlogPosts();
+  for (const post of posts) {
+    const path = `/blogs/${post.slug}`;
+    entries.push(buildUrl(`${siteUrl}${localePath(path, "zh")}`, post.date || undefined));
+    entries.push(buildUrl(`${siteUrl}${localePath(path, "en")}`, post.date || undefined));
   }
 
   const xml = [

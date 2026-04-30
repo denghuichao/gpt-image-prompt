@@ -134,6 +134,12 @@ export interface I18nDict {
     title: string;
     heading: string;
     desc: string;
+    empty: string;
+    readMore: string;
+    publishedOn: string;
+    backToBlogs: string;
+    notFoundTitle: string;
+    notFoundDesc: string;
   };
   promptDetail: {
     titleSuffix: string;
@@ -183,6 +189,9 @@ export interface I18nDict {
     aiBotLabel: string;
     templateIntro: string;
     templateIntroTail: string;
+    promptModeVariables: string;
+    promptModeDirect: string;
+    directPromptLabel: string;
   };
   promptNewPage: {
     title: string;
@@ -433,7 +442,13 @@ const EN: I18nDict = {
   blogs: {
     title: "Blogs | AI Image Prompt Hub",
     heading: "Blogs",
-    desc: "Blogs page is reserved. You can publish prompt design methods, case breakdowns, and product updates here.",
+    desc: "Prompt engineering notes, image workflow breakdowns, and product updates.",
+    empty: "No published articles yet.",
+    readMore: "Read article",
+    publishedOn: "Published on",
+    backToBlogs: "Back to blogs",
+    notFoundTitle: "Article not found",
+    notFoundDesc: "This article may be unpublished or removed.",
   },
   promptDetail: {
     titleSuffix: "| AI Image Prompt Hub",
@@ -483,6 +498,9 @@ const EN: I18nDict = {
     aiBotLabel: "AI Image Bot",
     templateIntro: "You are using \"{title}\". Here are {count} sample images to quickly understand style, composition, and lighting.",
     templateIntroTail: "Review them first, then fill variables on the left and generate.",
+    promptModeVariables: "Variables",
+    promptModeDirect: "Direct Edit",
+    directPromptLabel: "Edit Prompt",
   },
   promptNewPage: {
     title: "New Prompt Template",
@@ -746,7 +764,13 @@ const ZH: I18nDict = {
   blogs: {
     title: "博客 | AI Image Prompt Hub",
     heading: "博客",
-    desc: "博客页面已预留，你可以在这里发布 Prompt 设计方法、案例拆解和产品更新。",
+    desc: "围绕 Prompt 方法论、生图工作流拆解与产品更新的内容专栏。",
+    empty: "暂无已发布文章。",
+    readMore: "阅读文章",
+    publishedOn: "发布时间",
+    backToBlogs: "返回博客列表",
+    notFoundTitle: "文章不存在",
+    notFoundDesc: "这篇文章可能尚未发布或已删除。",
   },
   promptDetail: {
     titleSuffix: "| AI Image Prompt Hub",
@@ -796,6 +820,9 @@ const ZH: I18nDict = {
     aiBotLabel: "AI Image Bot",
     templateIntro: "你当前使用的是「{title}」模板。下面是该模板的 {count} 张样例图，可快速了解风格、构图和光影。",
     templateIntroTail: "你可以先看样例，再在左侧填写变量并生成。",
+    promptModeVariables: "变量填写",
+    promptModeDirect: "直接编辑",
+    directPromptLabel: "提示词编辑",
   },
   promptNewPage: {
     title: "新增 Prompt 模版",

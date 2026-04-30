@@ -22,6 +22,7 @@ type ChatMessage = {
 };
 
 type VariableDef = { key: string; description?: string; example?: string };
+type PromptEditMode = "variables" | "direct";
 
 function extractVariableDefs(template: PromptTemplate | undefined): VariableDef[] {
   if (!template) return [];
@@ -109,6 +110,8 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const variableDefs = useMemo(() => extractVariableDefs(activeTemplate), [activeTemplate]);
 
   const [variableValues, setVariableValues]         = useState<Record<string, string>>({});
+  const [promptEditMode, setPromptEditMode]         = useState<PromptEditMode>("variables");
+  const [directPrompt, setDirectPrompt]             = useState("");
   const [ratio, setRatio]                           = useState("auto");
   const [isGenerating, setIsGenerating]             = useState(false);
   const [generateError, setGenerateError]           = useState<string>("");
@@ -121,6 +124,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
   const [hasLoadedConversation, setHasLoadedConversation] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [directPromptEditorRef, setDirectPromptEditorRef] = useState<HTMLTextAreaElement | null>(null);
 
   const initialMessages = useMemo<ChatMessage[]>(() => {
     return [];
@@ -131,9 +135,17 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     const nextValues: Record<string, string> = {};
     for (const v of extractVariableDefs(activeTemplate)) nextValues[v.key] = v.example || "";
     setVariableValues(nextValues);
+    setDirectPrompt(fillPrompt(activeTemplate.prompt_template, nextValues));
+    setPromptEditMode("variables");
     setReferenceImages([]);
     setActiveReferencePreview("");
   }, [activeTemplate, isTemplateMode]);
+
+  useEffect(() => {
+    if (!directPromptEditorRef) return;
+    directPromptEditorRef.style.height = "auto";
+    directPromptEditorRef.style.height = `${directPromptEditorRef.scrollHeight}px`;
+  }, [directPromptEditorRef, directPrompt, promptEditMode]);
 
   useEffect(() => {
     if (isTemplateMode) return;
@@ -233,7 +245,11 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       return;
     }
 
-    const promptToSend = isTemplateMode ? finalPrompt : chatInput;
+    const templatePromptToSend =
+      promptEditMode === "direct"
+        ? normalizePromptText(directPrompt)
+        : finalPrompt;
+    const promptToSend = isTemplateMode ? templatePromptToSend : chatInput;
     if (!promptToSend.trim()) return;
     const configTags = [
       `${dict.build.aspectRatio}:${ratio}`,
@@ -491,35 +507,69 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       )}
                     </div>
 
-                    {/* Prompt template display */}
-                    <div className="mb-4 rounded-xl border border-night-700 bg-night-950/60 p-3">
-                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
-                        {dict.build.promptTemplate}
-                      </p>
-                      <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
-                        {renderHighlightedPromptTemplate(activeTemplate.prompt_template)}
-                      </p>
+                    {/* Prompt template display (variables mode only) */}
+                    {promptEditMode === "variables" && (
+                      <div className="mb-4 rounded-xl border border-night-700 bg-night-950/60 p-3">
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                          {dict.build.promptTemplate}
+                        </p>
+                        <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+                          {renderHighlightedPromptTemplate(activeTemplate.prompt_template)}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mb-3 inline-flex rounded-xl border border-night-700 bg-night-900/70 p-1">
+                      <button
+                        type="button"
+                        onClick={() => setPromptEditMode("variables")}
+                        className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "variables" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
+                      >
+                        {dict.build.promptModeVariables}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDirectPrompt(finalPrompt || activeTemplate.prompt_template);
+                          setPromptEditMode("direct");
+                        }}
+                        className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "direct" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
+                      >
+                        {dict.build.promptModeDirect}
+                      </button>
                     </div>
 
-                    {/* Variable inputs */}
-                    <div className="mb-4 space-y-3">
-                      {variableDefs.map((v) => (
-                        <div key={v.key}>
-                          <label className="mb-1 block text-xs font-medium text-night-400">
-                            {keyLabel(v.key)}
-                          </label>
-                          <input
-                            value={variableValues[v.key] || ""}
-                            onChange={(e) => handleVariableChange(v.key, e.target.value)}
-                            placeholder={v.example || `{${v.key}}`}
-                            className={inputClass}
-                          />
-                          {/* {v.description && (
-                            <p className="mt-1 text-[11px] text-night-600">{v.description}</p>
-                          )} */}
-                        </div>
-                      ))}
-                    </div>
+                    {/* Variable inputs / direct prompt editor */}
+                    {promptEditMode === "variables" ? (
+                      <div className="mb-4 space-y-3">
+                        {variableDefs.map((v) => (
+                          <div key={v.key}>
+                            <label className="mb-1 block text-xs font-medium text-night-400">
+                              {keyLabel(v.key)}
+                            </label>
+                            <input
+                              value={variableValues[v.key] || ""}
+                              onChange={(e) => handleVariableChange(v.key, e.target.value)}
+                              placeholder={v.example || `{${v.key}}`}
+                              className={inputClass}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <label className="mb-1 block text-xs font-medium text-night-400">
+                          {dict.build.directPromptLabel}
+                        </label>
+                        <textarea
+                          ref={setDirectPromptEditorRef}
+                          value={directPrompt}
+                          onChange={(e) => setDirectPrompt(e.target.value)}
+                          rows={1}
+                          className={`${inputClass} resize-none overflow-hidden font-mono text-xs leading-relaxed`}
+                        />
+                      </div>
+                    )}
                   </>
                 )}
 

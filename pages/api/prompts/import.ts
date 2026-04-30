@@ -90,18 +90,12 @@ async function uploadFromDataUrl(dataUrl: string, slug: string, idx: number) {
   return uploadBinary(Buffer.from(raw, "base64"), mime, slug, "data", idx);
 }
 
-async function uploadFromHttpUrl(url: string, slug: string, idx: number) {
+function normalizeHttpUrl(url: string) {
   const trimmed = url.trim();
   if (!/^https?:\/\//i.test(trimmed)) {
     throw new Error(`Invalid image URL: ${trimmed}`);
   }
-  const res = await fetch(trimmed);
-  if (!res.ok) {
-    throw new Error(`Failed to download image (${res.status}): ${trimmed}`);
-  }
-  const contentType = res.headers.get("content-type") || "image/jpeg";
-  const bytes = Buffer.from(await res.arrayBuffer());
-  return uploadBinary(bytes, contentType, slug, "url", idx);
+  return trimmed;
 }
 
 async function uploadFromLocalPublicPath(imagePath: string, slug: string, idx: number) {
@@ -155,7 +149,7 @@ async function processImages(item: ImportTemplateItem, slug: string) {
       continue;
     }
     if (/^https?:\/\//i.test(src)) {
-      uploaded.push(await uploadFromHttpUrl(src, slug, i));
+      uploaded.push(normalizeHttpUrl(src));
       continue;
     }
     if (src.startsWith("/")) {
