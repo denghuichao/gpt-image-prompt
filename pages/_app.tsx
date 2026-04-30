@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 import type { ComponentType, PropsWithChildren } from "react";
+import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 import "../styles/index.css";
 
@@ -48,12 +49,13 @@ const clerkAppearance = {
 
 function AppLayout({ Component, pageProps }: AppProps) {
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <SiteHeader />
-      <div className="pt-[72px]">
+      <div className="flex-1 pt-[72px]">
         <Component {...pageProps} />
       </div>
-    </>
+      <SiteFooter />
+    </div>
   );
 }
 

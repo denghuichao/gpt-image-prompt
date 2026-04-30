@@ -19,7 +19,7 @@ function buildUrl(loc: string, lastmod?: string) {
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const siteUrl = getSiteUrl();
-  const staticRoutes = ["/", "/gallery", "/pricing", "/build"];
+  const staticRoutes = ["/", "/gallery", "/pricing", "/build", "/privacy", "/terms"];
 
   const entries: string[] = [];
 
