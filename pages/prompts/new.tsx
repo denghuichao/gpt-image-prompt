@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
-import { resolveLocale } from "../../utils/i18n";
+import { resolveLocale, t } from "../../utils/i18n";
 
 type VariableInput = { key: string; description: string; example: string };
 
@@ -12,6 +12,7 @@ const inputClass = "w-full rounded-xl border border-night-700 bg-night-950/60 px
 const NewPromptPage: NextPage = () => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
+  const dict = t(locale);
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const { isLoaded, isSignedIn } = useAuth();
 
@@ -33,19 +34,7 @@ const NewPromptPage: NextPage = () => {
   const [adminChecked, setAdminChecked] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const pageText = useMemo(() => ({
-    title: locale === "en" ? "New Prompt Template" : "新增 Prompt 模版",
-    desc: locale === "en" ? "Create and publish a prompt template to Supabase" : "创建并发布到 Supabase",
-    submit: locale === "en" ? "Create Template" : "创建模版",
-    submitting: locale === "en" ? "Creating..." : "创建中...",
-    signIn: locale === "en" ? "Sign in to create" : "登录后创建",
-    success: locale === "en" ? "Template created successfully" : "模版创建成功",
-    forbidden: locale === "en" ? "Admin only" : "仅管理员可用",
-    importTitle: locale === "en" ? "Import JSON templates" : "导入 JSON 模版",
-    importHint: locale === "en" ? "Upload one .json file (array or { templates: [...] })" : "上传一个 .json 文件（数组或 { templates: [...] }）",
-    importing: locale === "en" ? "Importing..." : "导入中...",
-    importButton: locale === "en" ? "Import JSON" : "导入 JSON",
-  }), [locale]);
+  const pageText = useMemo(() => dict.promptNewPage, [dict]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,7 +144,7 @@ const NewPromptPage: NextPage = () => {
       try {
         parsed = JSON.parse(text);
       } catch {
-        throw new Error(locale === "en" ? "Invalid JSON file" : "JSON 文件格式错误");
+        throw new Error(pageText.invalidJson);
       }
 
       const res = await fetch("/api/prompts/import", {
@@ -171,9 +160,7 @@ const NewPromptPage: NextPage = () => {
       const successCount = Number(data.successCount ?? 0);
       const failedCount = Number(data.failedCount ?? 0);
       setOk(
-        locale === "en"
-          ? `Import done: ${successCount} success, ${failedCount} failed`
-          : `导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`,
+        `${pageText.importDonePrefix}${successCount}${pageText.importDoneMiddle}${failedCount}${pageText.importDoneSuffix}`,
       );
       if (failedCount > 0 && Array.isArray(data.result)) {
         const firstError = data.result.find((r: { ok?: boolean; error?: string }) => !r.ok && r.error)?.error;

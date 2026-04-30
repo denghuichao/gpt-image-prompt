@@ -2,6 +2,13 @@ export type AppLocale = "zh" | "en";
 
 export interface I18nDict {
   siteName: string;
+  footer: {
+    copyright: string;
+    contactMe: string;
+    privacyPolicy: string;
+    termsOfService: string;
+    xLabel: string;
+  };
   nav: {
     home: string;
     gallery: string;
@@ -9,6 +16,9 @@ export interface I18nDict {
     pricing: string;
     blogs: string;
     signIn: string;
+    currentCredits: string;
+    buyCredits: string;
+    newTemplate: string;
     clerkNotConfigured: string;
     searchTemplates: string;
     languageZh: string;
@@ -24,6 +34,8 @@ export interface I18nDict {
   home: {
     title: string;
     description: string;
+    seoDescription: string;
+    seoKeywords: string;
   };
   landing: {
     heroEyebrow: string;
@@ -83,11 +95,38 @@ export interface I18nDict {
     trustTitle: string;
     trustItems: string[];
     trustDesc: string;
+    ctaPricing: string;
+    pricingTitle: string;
+    pricingDesc: string;
+    pricingViewFull: string;
+    pricingRecommended: string;
+    bottomBuyCredits: string;
   };
   gallery: {
     title: string;
     description: string;
     noResults: string;
+  };
+  pricingPage: {
+    title: string;
+    metaDescription: string;
+    missingCallbackSignature: string;
+    confirmFailedPrefix: string;
+    confirmFailed: string;
+    confirmNetworkError: string;
+    authTokenNotReady: string;
+    networkRetry: string;
+    createCheckoutFailed: string;
+    planFeaturesToConfigure: string;
+    purchaseSuccessful: string;
+    checkoutCanceled: string;
+    heading: string;
+    subtitle: string;
+    currentCredits: string;
+    recommended: string;
+    buyCredits: string;
+    redirecting: string;
+    freePlanHint: string;
   };
   blogs: {
     title: string;
@@ -130,11 +169,77 @@ export interface I18nDict {
       high: string;
       ultra: string;
     };
+    signInFirst: string;
+    clickToPreview: string;
+    download: string;
+    downloading: string;
+    downloadImageAria: string;
+    generationConfig: string;
+    generationFailedPrefix: string;
+    generationSucceededNoImage: string;
+    youLabel: string;
+    aiBotLabel: string;
+  };
+  promptNewPage: {
+    title: string;
+    desc: string;
+    submit: string;
+    submitting: string;
+    signIn: string;
+    success: string;
+    forbidden: string;
+    importTitle: string;
+    importHint: string;
+    importing: string;
+    importButton: string;
+    invalidJson: string;
+    importDonePrefix: string;
+    importDoneMiddle: string;
+    importDoneSuffix: string;
+  };
+  privacyPage: {
+    title: string;
+    metaDescription: string;
+    legalBadge: string;
+    lastUpdated: string;
+    sectionCollectTitle: string;
+    collectItems: string[];
+    sectionUseTitle: string;
+    sectionUseBody: string;
+    sectionThirdPartyTitle: string;
+    sectionThirdPartyBody: string;
+    sectionUpdatesTitle: string;
+    sectionUpdatesBody: string;
+    contactTitle: string;
+    contactBodyPrefix: string;
+  };
+  termsPage: {
+    title: string;
+    metaDescription: string;
+    legalBadge: string;
+    lastUpdated: string;
+    sectionAcceptanceTitle: string;
+    sectionAcceptanceBody: string;
+    sectionBillingTitle: string;
+    billingItems: string[];
+    sectionAllowedUseTitle: string;
+    sectionAllowedUseBody: string;
+    sectionChangesTitle: string;
+    sectionChangesBody: string;
+    contactTitle: string;
+    contactBodyPrefix: string;
   };
 }
 
 const EN: I18nDict = {
   siteName: "AI Image Prompt Hub",
+  footer: {
+    copyright: "© AI Image Prompt Hub",
+    contactMe: "Contact Me:",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    xLabel: "X",
+  },
   nav: {
     home: "home",
     gallery: "gallery",
@@ -142,6 +247,9 @@ const EN: I18nDict = {
     pricing: "pricing",
     blogs: "blogs",
     signIn: "Sign in",
+    currentCredits: "Current Credits",
+    buyCredits: "Buy Credits",
+    newTemplate: "New Template",
     clerkNotConfigured: "Clerk not configured",
     searchTemplates: "Search templates...",
     languageZh: "\u4e2d\u6587",
@@ -158,6 +266,10 @@ const EN: I18nDict = {
     title: "AI Image Prompt Hub",
     description:
       "AI Image Prompt Hub helps creators and teams build better AI image prompts with structured templates, searchable galleries, and professional build workflows.",
+    seoDescription:
+      "AI Image Prompt Hub for GPT Image 2 (GTP image 2) and Nano Banana workflows. Discover structured prompt templates, searchable gallery, and professional build flow.",
+    seoKeywords:
+      "GPT Image 2, GTP image 2, Nano Banana, AI image prompt, prompt template, prompt gallery, image generation, prompt engineering",
   },
   landing: {
     heroEyebrow: "AI Image Prompt System",
@@ -279,11 +391,38 @@ const EN: I18nDict = {
       "Team-scale data architecture",
     ],
     trustDesc: "This is not a one-off prompt generator. It is long-term infrastructure for scalable AI image prompting.",
+    ctaPricing: "View Pricing",
+    pricingTitle: "Credit Packs",
+    pricingDesc: "Browse templates for free, buy credits only when you generate images.",
+    pricingViewFull: "View Full Pricing",
+    pricingRecommended: "Recommended",
+    bottomBuyCredits: "Buy Credits",
   },
   gallery: {
     title: "Gallery | AI Image Prompt Hub",
     description: "Browse prompt templates in a waterfall gallery and search by tags, title, description, and prompt content.",
     noResults: "No templates found for",
+  },
+  pricingPage: {
+    title: "Pricing | AI Image Prompt Hub",
+    metaDescription: "Buy one-time credit packs for AI image generation. Prompt browsing remains free.",
+    missingCallbackSignature: "Missing callback signature or checkout id, cannot confirm payment.",
+    confirmFailedPrefix: "Payment confirmation failed",
+    confirmFailed: "Payment confirmation failed.",
+    confirmNetworkError: "Network error during payment confirmation.",
+    authTokenNotReady: "Auth token not ready. Please refresh and try again.",
+    networkRetry: "Network error, please try again",
+    createCheckoutFailed: "Failed to create checkout",
+    planFeaturesToConfigure: "Plan features to be configured",
+    purchaseSuccessful: "Purchase successful.",
+    checkoutCanceled: "Checkout canceled.",
+    heading: "Pricing",
+    subtitle: "Template browsing is free. Buy credits once and use 1 credit per image generation in Build.",
+    currentCredits: "Current credits",
+    recommended: "Recommended",
+    buyCredits: "Buy Credits",
+    redirecting: "Redirecting...",
+    freePlanHint: "Free plan stays free for prompt browsing.",
   },
   blogs: {
     title: "Blogs | AI Image Prompt Hub",
@@ -326,11 +465,91 @@ const EN: I18nDict = {
       high: "High",
       ultra: "Ultra",
     },
+    signInFirst: "Please sign in first.",
+    clickToPreview: "Click to preview",
+    download: "Download",
+    downloading: "Downloading...",
+    downloadImageAria: "Download image",
+    generationConfig: "Generation Config",
+    generationFailedPrefix: "Generation failed",
+    generationSucceededNoImage: "Generation succeeded, but no displayable image was returned",
+    youLabel: "You",
+    aiBotLabel: "AI Image Bot",
+  },
+  promptNewPage: {
+    title: "New Prompt Template",
+    desc: "Create and publish a prompt template to Supabase",
+    submit: "Create Template",
+    submitting: "Creating...",
+    signIn: "Sign in to create",
+    success: "Template created successfully",
+    forbidden: "Admin only",
+    importTitle: "Import JSON templates",
+    importHint: "Upload one .json file (array or { templates: [...] })",
+    importing: "Importing...",
+    importButton: "Import JSON",
+    invalidJson: "Invalid JSON file",
+    importDonePrefix: "Import done: ",
+    importDoneMiddle: " success, ",
+    importDoneSuffix: " failed",
+  },
+  privacyPage: {
+    title: "Privacy Policy",
+    metaDescription: "Privacy Policy for AI Image Prompt Hub.",
+    legalBadge: "Legal",
+    lastUpdated: "Last updated: April 30, 2026",
+    sectionCollectTitle: "What We Collect",
+    collectItems: [
+      "Account information (such as your email from Clerk)",
+      "Usage data for template browsing and image generation",
+      "Transaction-related records for credit purchases",
+    ],
+    sectionUseTitle: "How We Use Data",
+    sectionUseBody:
+      "We use this data to provide authentication, template management, image generation, payment confirmation, and account credit balance display.",
+    sectionThirdPartyTitle: "Third-Party Services",
+    sectionThirdPartyBody:
+      "Template images and generated images may be stored in Supabase Storage. Payment processing is handled by Creem. Authentication is handled by Clerk.",
+    sectionUpdatesTitle: "Policy Updates",
+    sectionUpdatesBody:
+      "We do not sell your personal information. We may update this policy from time to time.",
+    contactTitle: "Contact",
+    contactBodyPrefix: "If you have questions, contact us at: ",
+  },
+  termsPage: {
+    title: "Terms of Service",
+    metaDescription: "Terms of Service for AI Image Prompt Hub.",
+    legalBadge: "Legal",
+    lastUpdated: "Last updated: April 30, 2026",
+    sectionAcceptanceTitle: "Acceptance of Terms",
+    sectionAcceptanceBody:
+      "By using AI Image Prompt Hub, you agree to comply with these terms and all applicable laws.",
+    sectionBillingTitle: "Credits & Billing",
+    billingItems: [
+      "Prompt template browsing is free.",
+      "Image generation may require credits.",
+      "Credit packs are one-time purchases.",
+    ],
+    sectionAllowedUseTitle: "Allowed Use",
+    sectionAllowedUseBody:
+      "Credits are consumed per generation request according to product rules. Misuse, abuse, or illegal content generation is prohibited.",
+    sectionChangesTitle: "Service Changes",
+    sectionChangesBody:
+      "We may suspend accounts that violate these terms. Service functionality may change over time.",
+    contactTitle: "Contact",
+    contactBodyPrefix: "For support, contact: ",
   },
 };
 
 const ZH: I18nDict = {
   siteName: "AI Image Prompt Hub",
+  footer: {
+    copyright: "© AI Image Prompt Hub",
+    contactMe: "联系我：",
+    privacyPolicy: "隐私政策",
+    termsOfService: "服务条款",
+    xLabel: "X",
+  },
   nav: {
     home: "首页",
     gallery: "模板库",
@@ -338,6 +557,9 @@ const ZH: I18nDict = {
     pricing: "定价",
     blogs: "博客",
     signIn: "登录",
+    currentCredits: "当前积分",
+    buyCredits: "购买积分",
+    newTemplate: "新建模版",
     clerkNotConfigured: "未配置 Clerk",
     searchTemplates: "搜索模板...",
     languageZh: "中文",
@@ -353,6 +575,10 @@ const ZH: I18nDict = {
   home: {
     title: "AI Image Prompt Hub",
     description: "AI Image Prompt Hub：用结构化模板、可搜索模板库和专业构建流程，帮助创作者和团队更高质量地生成 AI 图像提示词。",
+    seoDescription:
+      "AI Image Prompt Hub，支持 GPT Image 2（GTP image 2）与 Nano Banana 热门生图工作流。提供结构化 Prompt 模板、可搜索画廊与专业化构建流程。",
+    seoKeywords:
+      "GPT Image 2, GTP image 2, Nano Banana, AI 图像提示词, Prompt 模板, 提示词画廊, 生图, 提示词工程",
   },
   landing: {
     heroEyebrow: "AI 生图 Prompt 系统",
@@ -474,11 +700,38 @@ const ZH: I18nDict = {
       "面向团队扩展的数据结构",
     ],
     trustDesc: "这不是单次 prompt 生成器，而是一套面向长期产出的 AI 图像提示词生产基础设施。",
+    ctaPricing: "查看定价",
+    pricingTitle: "积分套餐",
+    pricingDesc: "模板浏览免费，仅在生成图片时消耗积分。",
+    pricingViewFull: "查看完整定价",
+    pricingRecommended: "推荐",
+    bottomBuyCredits: "购买积分",
   },
   gallery: {
     title: "模板库 | AI Image Prompt Hub",
     description: "瀑布流浏览 Prompt 模板，并按标签、标题、描述和 Prompt 内容搜索。",
     noResults: "未找到匹配模板",
+  },
+  pricingPage: {
+    title: "定价 | AI Image Prompt Hub",
+    metaDescription: "购买一次性积分包用于 AI 生图。Prompt 模板浏览永久免费。",
+    missingCallbackSignature: "缺少回调签名或 checkout id，无法确认支付。",
+    confirmFailedPrefix: "支付确认失败",
+    confirmFailed: "支付确认失败。",
+    confirmNetworkError: "支付确认网络异常。",
+    authTokenNotReady: "登录态令牌尚未就绪，请刷新页面后重试。",
+    networkRetry: "网络错误，请稍后重试",
+    createCheckoutFailed: "创建结算失败",
+    planFeaturesToConfigure: "请在 pricing 配置中设置套餐功能",
+    purchaseSuccessful: "购买成功。",
+    checkoutCanceled: "已取消支付。",
+    heading: "定价",
+    subtitle: "模板浏览永久免费。一次性购买积分，Build 每次生图消耗 1 积分。",
+    currentCredits: "当前积分",
+    recommended: "推荐",
+    buyCredits: "购买积分",
+    redirecting: "跳转中...",
+    freePlanHint: "免费方案可持续用于模板浏览。",
   },
   blogs: {
     title: "博客 | AI Image Prompt Hub",
@@ -521,6 +774,79 @@ const ZH: I18nDict = {
       high: "高质量",
       ultra: "超清",
     },
+    signInFirst: "请先登录。",
+    clickToPreview: "点击预览",
+    download: "下载",
+    downloading: "下载中...",
+    downloadImageAria: "下载图片",
+    generationConfig: "生成参数",
+    generationFailedPrefix: "生成失败",
+    generationSucceededNoImage: "生成成功，但未返回可展示图片",
+    youLabel: "你",
+    aiBotLabel: "AI Image Bot",
+  },
+  promptNewPage: {
+    title: "新增 Prompt 模版",
+    desc: "创建并发布到 Supabase",
+    submit: "创建模版",
+    submitting: "创建中...",
+    signIn: "登录后创建",
+    success: "模版创建成功",
+    forbidden: "仅管理员可用",
+    importTitle: "导入 JSON 模版",
+    importHint: "上传一个 .json 文件（数组或 { templates: [...] }）",
+    importing: "导入中...",
+    importButton: "导入 JSON",
+    invalidJson: "JSON 文件格式错误",
+    importDonePrefix: "导入完成：成功 ",
+    importDoneMiddle: " 条，失败 ",
+    importDoneSuffix: " 条",
+  },
+  privacyPage: {
+    title: "隐私政策",
+    metaDescription: "AI Image Prompt Hub 的隐私政策。",
+    legalBadge: "法律文档",
+    lastUpdated: "最后更新：2026年4月30日",
+    sectionCollectTitle: "我们收集的信息",
+    collectItems: [
+      "账户信息（如来自 Clerk 的邮箱）",
+      "模板浏览与生图使用数据",
+      "积分购买相关交易记录",
+    ],
+    sectionUseTitle: "数据使用方式",
+    sectionUseBody:
+      "这些数据用于身份验证、模板管理、生图服务、支付确认以及账户积分余额展示。",
+    sectionThirdPartyTitle: "第三方服务",
+    sectionThirdPartyBody:
+      "模板图片和生成图片可能存储在 Supabase Storage。支付由 Creem 处理，身份认证由 Clerk 处理。",
+    sectionUpdatesTitle: "政策更新",
+    sectionUpdatesBody:
+      "我们不会出售你的个人信息。我们可能会不时更新本政策。",
+    contactTitle: "联系我们",
+    contactBodyPrefix: "如有问题，请联系：",
+  },
+  termsPage: {
+    title: "服务条款",
+    metaDescription: "AI Image Prompt Hub 的服务条款。",
+    legalBadge: "法律文档",
+    lastUpdated: "最后更新：2026年4月30日",
+    sectionAcceptanceTitle: "条款接受",
+    sectionAcceptanceBody:
+      "使用 AI Image Prompt Hub 即表示你同意遵守本条款及适用法律法规。",
+    sectionBillingTitle: "积分与计费",
+    billingItems: [
+      "Prompt 模板浏览免费。",
+      "生图功能可能需要积分。",
+      "积分包为一次性购买。",
+    ],
+    sectionAllowedUseTitle: "使用规范",
+    sectionAllowedUseBody:
+      "积分按产品规则在生图请求时扣减。禁止滥用服务或生成违法违规内容。",
+    sectionChangesTitle: "服务变更",
+    sectionChangesBody:
+      "如违反条款，我们可能暂停账户。服务功能可能随时间调整。",
+    contactTitle: "联系我们",
+    contactBodyPrefix: "如需支持，请联系：",
   },
 };
 

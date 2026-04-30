@@ -32,7 +32,7 @@
       "price_usd": 4.9,
       "credits": 50,
       "highlight": false,
-      "creem_product_id": "prod_2a7sBOCGgIeKMAlZBNI9rE",
+      "creem_product_id": "prod_ysCxqMaKtEc0s9qkKlhig",
       "features_zh": [
         "包含免费版全部功能",
         "50 积分",
@@ -54,14 +54,14 @@
     },
     {
       "key": "lite",
-      "name_zh": "入门积分包",
+      "name_zh": "标准积分包",
       "name_en": "Lite Pack",
       "label_zh": "一次性购买",
       "label_en": "one-time",
       "price_usd": 9.9,
       "credits": 120,
       "highlight": true,
-      "creem_product_id": "prod_4jkkT6jNn7WvEUMnaaXvcB",
+      "creem_product_id": "prod_6risVXYVKVDctc1vQOFgty",
       "features_zh": [
         "包含免费版全部功能",
         "120 积分",
@@ -90,7 +90,7 @@
       "price_usd": 29.9,
       "credits": 500,
       "highlight": false,
-      "creem_product_id": "prod_22zUGJzuY1BxJHqrix8zib",
+      "creem_product_id": "prod_Nu1x1wmW6MNahV5oyBM6E",
       "features_zh": [
         "包含入门包全部功能",
         "500 积分",

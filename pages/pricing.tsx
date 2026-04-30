@@ -18,6 +18,7 @@ const PricingPage: NextPage = () => {
   const canonical = absoluteUrl("/pricing", localeTyped);
   const hreflangs = buildHrefLang("/pricing");
   const dict = t(locale);
+  const p = dict.pricingPage;
   const isEn = locale === "en";
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [buyError, setBuyError] = useState("");
@@ -58,11 +59,7 @@ const PricingPage: NextPage = () => {
 
     if (!querySignature || !queryCheckoutId) {
       setConfirmState("error");
-      setConfirmMessage(
-        isEn
-          ? "Missing callback signature or checkout id, cannot confirm payment."
-          : "缺少回调签名或 checkout id，无法确认支付。",
-      );
+      setConfirmMessage(p.missingCallbackSignature);
       return;
     }
 
@@ -90,8 +87,8 @@ const PricingPage: NextPage = () => {
           setConfirmState("error");
           setConfirmMessage(
             data.error
-              ? `${isEn ? "Payment confirmation failed" : "支付确认失败"}: ${data.error}`
-              : (isEn ? "Payment confirmation failed." : "支付确认失败。"),
+              ? `${p.confirmFailedPrefix}: ${data.error}`
+              : p.confirmFailed,
           );
           return;
         }
@@ -112,23 +109,15 @@ const PricingPage: NextPage = () => {
         if (data.alreadyProcessed) {
           setConfirmState("already");
           setShowSuccessNotice(true);
-          setConfirmMessage(
-            isEn
-              ? "Purchase successful."
-              : "购买成功。",
-          );
+          setConfirmMessage(p.purchaseSuccessful);
         } else {
           setConfirmState("confirmed");
           setShowSuccessNotice(true);
-          setConfirmMessage(
-            isEn
-              ? "Purchase successful."
-              : "购买成功。",
-          );
+          setConfirmMessage(p.purchaseSuccessful);
         }
       } catch {
         setConfirmState("error");
-        setConfirmMessage(isEn ? "Network error during payment confirmation." : "支付确认网络异常。");
+        setConfirmMessage(p.confirmNetworkError);
       }
     }
 
@@ -137,7 +126,7 @@ const PricingPage: NextPage = () => {
     router.isReady,
     success,
     isLoaded,
-    isEn,
+    p,
     querySignature,
     queryCheckoutId,
   ]);
@@ -156,11 +145,7 @@ const PricingPage: NextPage = () => {
     try {
       const token = hasClerkKey ? await getToken() : null;
       if (hasClerkKey && isSignedIn && !token) {
-        setBuyError(
-          isEn
-            ? "Auth token not ready. Please refresh and try again."
-            : "登录态令牌尚未就绪，请刷新页面后重试。",
-        );
+        setBuyError(p.authTokenNotReady);
         return;
       }
       const res = await fetch("/api/checkout", {
@@ -174,12 +159,12 @@ const PricingPage: NextPage = () => {
       const data = await res.json() as { checkoutUrl?: string; error?: string; reason?: string };
       if (!res.ok || !data.checkoutUrl) {
         const reason = data.reason ? ` (${data.reason})` : "";
-        setBuyError((data.error ?? "Failed to create checkout") + reason);
+        setBuyError((data.error ?? p.createCheckoutFailed) + reason);
         return;
       }
       window.location.href = data.checkoutUrl;
     } catch {
-      setBuyError(isEn ? "Network error, please try again" : "网络错误，请稍后重试");
+      setBuyError(p.networkRetry);
     } finally {
       setLoadingPlan(null);
     }
@@ -194,17 +179,14 @@ const PricingPage: NextPage = () => {
     creem_product_id: plan.creem_product_id,
     items: (isEn ? plan.features_en : plan.features_zh) && (isEn ? plan.features_en : plan.features_zh).length > 0
       ? (isEn ? plan.features_en : plan.features_zh)
-      : (isEn ? ["Plan features to be configured"] : ["请在 pricing 配置中设置套餐功能"]),
+      : [p.planFeaturesToConfigure],
   }));
 
   return (
     <>
       <Head>
-        <title>{isEn ? "Pricing | AI Image Prompt Hub" : "定价 | AI Image Prompt Hub"}</title>
-        <meta
-          name="description"
-          content={isEn ? "Buy one-time credit packs for AI image generation. Prompt browsing remains free." : "购买一次性积分包用于 AI 生图。Prompt 模板浏览永久免费。"}
-        />
+        <title>{p.title}</title>
+        <meta name="description" content={p.metaDescription} />
         <link rel="canonical" href={canonical} />
         {hreflangs.map((item) => (
           <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
@@ -216,7 +198,7 @@ const PricingPage: NextPage = () => {
           <div className="mx-auto mb-10 flex max-w-xl items-center justify-center gap-2 rounded-2xl border border-emerald-500/35 bg-emerald-500/10 px-6 py-4 text-center">
             <CheckCircleIcon className="h-5 w-5 text-emerald-400" />
             <p className="text-sm font-semibold text-emerald-300">
-              {confirmMessage || (isEn ? "Purchase successful." : "购买成功。")}
+              {confirmMessage || p.purchaseSuccessful}
               {successPlan && (
                 <span className="ml-1 text-emerald-400">
                   ({pricingConfig.plans.find((p) => p.key === successPlan)?.[isEn ? "name_en" : "name_zh"]})
@@ -229,7 +211,7 @@ const PricingPage: NextPage = () => {
         {confirmState === "error" && (
           <div className="mx-auto mb-10 max-w-xl rounded-2xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-center">
             <p className="text-sm font-semibold text-red-300">
-              {confirmMessage || (isEn ? "Payment confirmation failed." : "支付确认失败。")}
+              {confirmMessage || p.confirmFailed}
             </p>
           </div>
         )}
@@ -237,23 +219,21 @@ const PricingPage: NextPage = () => {
         {canceled && (
           <div className="mx-auto mb-10 max-w-xl rounded-2xl border border-night-700 bg-night-900/70 px-6 py-4 text-center">
             <p className="text-sm font-semibold text-night-300">
-              {isEn ? "Checkout canceled." : "已取消支付。"}
+              {p.checkoutCanceled}
             </p>
           </div>
         )}
 
         <div className="mb-16 text-center">
           <h1 className="font-display text-4xl font-semibold italic text-night-50 sm:text-5xl lg:text-6xl">
-            {isEn ? "Pricing" : "定价"}
+            {p.heading}
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-night-400">
-            {isEn
-              ? "Template browsing is free. Buy credits once and use 1 credit per image generation in Build."
-              : "模板浏览永久免费。一次性购买积分，Build 每次生图消耗 1 积分。"}
+            {p.subtitle}
           </p>
           {creditBalance != null && (
             <p className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full border border-glow-500/25 bg-glow-500/8 px-3 py-1 text-xs font-semibold text-glow-300">
-              {isEn ? "Current credits" : "当前积分"}: {creditBalance}
+              {p.currentCredits}: {creditBalance}
             </p>
           )}
         </div>
@@ -279,7 +259,7 @@ const PricingPage: NextPage = () => {
                   </p>
                   {tier.highlight && (
                     <span className="rounded-full border border-glow-500/40 bg-glow-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-glow-300">
-                      {isEn ? "Recommended" : "推荐"}
+                      {p.recommended}
                     </span>
                   )}
                 </div>
@@ -322,7 +302,7 @@ const PricingPage: NextPage = () => {
                           : "border border-night-600 bg-night-800 text-night-200 hover:border-night-500 hover:text-night-50"
                       }`}
                     >
-                      {isEn ? "Buy Credits" : "购买积分"}
+                      {p.buyCredits}
                     </button>
                   </SignInButton>
                 ) : (
@@ -337,8 +317,8 @@ const PricingPage: NextPage = () => {
                     }`}
                   >
                     {loadingPlan === tier.key
-                      ? (isEn ? "Redirecting..." : "跳转中...")
-                      : (isEn ? "Buy Credits" : "购买积分")}
+                      ? p.redirecting
+                      : p.buyCredits}
                   </button>
                 )}
               </div>
@@ -351,7 +331,7 @@ const PricingPage: NextPage = () => {
         )}
 
         <p className="mt-10 text-center text-xs text-night-600">
-          {isEn ? "Free plan stays free for prompt browsing." : "免费方案可持续用于模板浏览。"}
+          {p.freePlanHint}
         </p>
       </main>
     </>

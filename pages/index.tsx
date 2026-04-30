@@ -22,13 +22,9 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
   const dict = t(locale);
   const c = dict.landing;
   const isEn = locale === "en";
-  const seoDescription = isEn
-    ? "AI Image Prompt Hub for GPT Image 2 (GTP image 2) and Nano Banana workflows. Discover structured prompt templates, searchable gallery, and professional build flow."
-    : "AI Image Prompt Hub，支持 GPT Image 2（GTP image 2）与 Nano Banana 热门生图工作流。提供结构化 Prompt 模板、可搜索画廊与专业化构建流程。";
-  const seoKeywords = isEn
-    ? "GPT Image 2, GTP image 2, Nano Banana, AI image prompt, prompt template, prompt gallery, image generation, prompt engineering"
-    : "GPT Image 2, GTP image 2, Nano Banana, AI 图像提示词, Prompt 模板, 提示词画廊, 生图, 提示词工程";
-  const localeTyped = isEn ? "en" : "zh";
+  const seoDescription = dict.home.seoDescription;
+  const seoKeywords = dict.home.seoKeywords;
+  const localeTyped = locale === "en" ? "en" : "zh";
   const canonical = absoluteUrl("/", localeTyped);
   const hreflangs = buildHrefLang("/");
   const ogImage = absoluteUrl("/prompt_images/1.jpeg", localeTyped);
@@ -163,7 +159,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
                 locale={locale}
                 className="inline-flex items-center gap-2 rounded-full border border-night-600 px-7 py-3.5 text-sm font-semibold text-night-200 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50"
               >
-                {locale === "en" ? "View Pricing" : "查看定价"}
+                {c.ctaPricing}
               </Link>
             </div>
           </div>
@@ -286,10 +282,10 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
           <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="font-display text-3xl font-semibold italic text-night-50 sm:text-4xl">
-                {isEn ? "Credit Packs" : "积分套餐"}
+                {c.pricingTitle}
               </h2>
               <p className="mt-2 text-sm text-night-400">
-                {isEn ? "Browse templates for free, buy credits only when you generate images." : "模板浏览免费，仅在生成图片时消耗积分。"}
+                {c.pricingDesc}
               </p>
             </div>
             <Link
@@ -297,7 +293,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
               locale={locale}
               className="inline-flex shrink-0 items-center gap-2 rounded-full border border-night-600 px-5 py-2.5 text-sm font-semibold text-night-300 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50"
             >
-              {isEn ? "View Full Pricing" : "查看完整定价"}
+              {c.pricingViewFull}
               <span aria-hidden="true">→</span>
             </Link>
           </div>
@@ -324,7 +320,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
                   </p>
                   {plan.highlight && (
                     <span className="absolute right-4 top-4 rounded-full border border-glow-500/40 bg-glow-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-glow-300">
-                      {isEn ? "Recommended" : "推荐"}
+                      {c.pricingRecommended}
                     </span>
                   )}
                   <h3 className="mt-2 font-display text-2xl font-semibold italic text-night-50">{title}</h3>
@@ -367,7 +363,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
               locale={locale}
               className="inline-flex items-center gap-2 rounded-full border border-night-600 px-8 py-3.5 text-sm font-semibold text-night-200 transition hover:border-night-500 hover:bg-night-800 hover:text-night-50"
             >
-              {locale === "en" ? "Buy Credits" : "购买积分"}
+              {c.bottomBuyCredits}
             </Link>
           </div>
         </section>

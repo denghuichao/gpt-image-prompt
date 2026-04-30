@@ -349,9 +349,9 @@ export default function SiteHeader() {
           {hasClerkKey ? (
             <ClerkActions
               signInLabel={dict.nav.signIn}
-              creditsLabel={locale === "en" ? "Current Credits" : "当前积分"}
-              buyCreditsLabel={locale === "en" ? "Buy Credits" : "购买积分"}
-              createTemplateLabel={locale === "en" ? "New Template" : "新建模版"}
+              creditsLabel={dict.nav.currentCredits}
+              buyCreditsLabel={dict.nav.buyCredits}
+              createTemplateLabel={dict.nav.newTemplate}
               showCreateTemplate={isAdmin}
             />
           ) : (

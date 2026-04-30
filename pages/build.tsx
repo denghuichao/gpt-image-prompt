@@ -177,7 +177,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
 
   async function handleGenerate() {
     if (hasClerkKey && authLoaded && !isSignedIn) {
-      setGenerateError(locale === "en" ? "Please sign in first." : "请先登录。");
+      setGenerateError(dict.build.signInFirst);
       return;
     }
 
@@ -242,7 +242,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
         setGenerateError(errMsg);
         setMessages((prev) =>
           replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
-            content: `生成失败: ${errMsg}`,
+            content: `${dict.build.generationFailedPrefix}: ${errMsg}`,
             tags: configTags,
           }),
         );
@@ -260,7 +260,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
         }
         setMessages((prev) =>
           replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
-            content: parsedImages.length > 0 ? dict.build.generationDone : "生成成功，但未返回可展示图片",
+            content: parsedImages.length > 0 ? dict.build.generationDone : dict.build.generationSucceededNoImage,
             images: parsedImages,
             tags: configTags,
           }),
@@ -272,7 +272,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       setGenerateError(errMsg);
       setMessages((prev) =>
         replaceLoadingAssistantWithFinal(prev, pendingMsgId, {
-          content: `生成失败: ${errMsg}`,
+          content: `${dict.build.generationFailedPrefix}: ${errMsg}`,
           tags: configTags,
         }),
       );
@@ -431,7 +431,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                 {/* Generation config */}
                 <div className="mb-4 rounded-xl border border-night-700 bg-night-800/40 p-3">
                   <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-night-500">
-                    Generation Config
+                    {dict.build.generationConfig}
                   </p>
                   <label className="mb-1 block text-[11px] text-night-500">{dict.build.aspectRatio}</label>
                   <select value={ratio} onChange={(e) => setRatio(e.target.value)} className={selectClass}>
@@ -538,7 +538,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                           </span>
                         )}
                         <span className={`text-[11px] font-medium ${msg.role === "user" ? "text-emerald-300" : "text-glow-300"}`}>
-                          {msg.role === "user" ? "You" : "AI Image Bot"}
+                          {msg.role === "user" ? dict.build.youLabel : dict.build.aiBotLabel}
                         </span>
                         {msg.role === "user" && (
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/35 bg-emerald-500/20 text-emerald-100">
@@ -594,7 +594,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                                 </button>
                                 <span className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-night-950/75 to-transparent" />
                                 <span className="absolute bottom-2 left-2 text-[10px] text-night-200">
-                                  {locale === "en" ? "Click to preview" : "点击预览"}
+                                  {dict.build.clickToPreview}
                                 </span>
                                 <span className="absolute bottom-2 right-2">
                                   <button
@@ -604,7 +604,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                                   >
                                     <span className="inline-flex items-center gap-1">
                                       <ArrowDownTrayIcon className="h-2.5 w-2.5" />
-                                      {locale === "en" ? "Download" : "下载"}
+                                      {dict.build.download}
                                     </span>
                                   </button>
                                 </span>
@@ -682,12 +682,12 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
               type="button"
               onClick={() => { void handleDownloadImage(activeGeneratedPreview); }}
               className="absolute right-12 top-2 rounded-full border border-night-600 bg-night-900/80 px-2.5 py-0.5 text-xs text-night-100 transition hover:border-night-400 disabled:opacity-60"
-              aria-label={locale === "en" ? "Download image" : "下载图片"}
+              aria-label={dict.build.downloadImageAria}
               disabled={isDownloadingImage}
             >
               <span className="inline-flex items-center gap-1">
                 <ArrowDownTrayIcon className="h-3 w-3" />
-                {isDownloadingImage ? (locale === "en" ? "Downloading..." : "下载中...") : (locale === "en" ? "Download" : "下载")}
+                {isDownloadingImage ? dict.build.downloading : dict.build.download}
               </span>
             </button>
             <button
