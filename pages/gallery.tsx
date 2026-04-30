@@ -9,6 +9,14 @@ import { absoluteUrl, buildHrefLang } from "../utils/seo";
 
 const PAGE_SIZE = 24;
 
+function parseCsvParam(input: string | string[] | undefined) {
+  const raw = Array.isArray(input) ? input.join(",") : (input || "");
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 type PromptsPageResponse = {
   templates: PromptTemplate[];
   nextCursor: number | null;
@@ -68,6 +76,8 @@ const GalleryPage: NextPage = () => {
   const hreflangs = buildHrefLang("/gallery");
   const dict = t(locale);
   const query = typeof router.query.q === "string" ? router.query.q : "";
+  const typeFilter = typeof router.query.type === "string" ? router.query.type : "";
+  const tagFilters = useMemo(() => parseCsvParam(router.query.tags), [router.query.tags]);
   const normalizedQuery = useMemo(() => query.trim(), [query]);
 
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
@@ -89,6 +99,8 @@ const GalleryPage: NextPage = () => {
       params.set("cursor", String(cursor));
       params.set("limit", String(PAGE_SIZE));
       if (normalizedQuery) params.set("q", normalizedQuery);
+      if (typeFilter.trim()) params.set("style", typeFilter.trim());
+      if (tagFilters.length > 0) params.set("tags", tagFilters.join(","));
 
       const res = await fetch(`/api/prompts?${params.toString()}`);
       const data = await res.json() as PromptsPageResponse;
@@ -108,7 +120,7 @@ const GalleryPage: NextPage = () => {
       setIsLoading(false);
       setHasLoadedOnce(true);
     }
-  }, [normalizedQuery]);
+  }, [normalizedQuery, typeFilter, tagFilters]);
 
   useEffect(() => {
     setTemplates([]);

@@ -21,6 +21,13 @@ export interface I18nDict {
     newTemplate: string;
     clerkNotConfigured: string;
     searchTemplates: string;
+    filter: string;
+    filterTitle: string;
+    filterType: string;
+    filterTags: string;
+    filterAllTypes: string;
+    filterReset: string;
+    filterApply: string;
     languageZh: string;
     languageEn: string;
   };
@@ -245,9 +252,9 @@ export interface I18nDict {
 }
 
 const EN: I18nDict = {
-  siteName: "AI Image Prompt Hub",
+  siteName: "AI Image Prompt Gallery",
   footer: {
-    copyright: "© AI Image Prompt Hub",
+    copyright: "© AI Image Prompt Gallery",
     contactMe: "Contact Me:",
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
@@ -265,6 +272,13 @@ const EN: I18nDict = {
     newTemplate: "New Template",
     clerkNotConfigured: "Clerk not configured",
     searchTemplates: "Search templates...",
+    filter: "Filter",
+    filterTitle: "Filters",
+    filterType: "Type",
+    filterTags: "Tags",
+    filterAllTypes: "All types",
+    filterReset: "Reset",
+    filterApply: "Apply",
     languageZh: "\u4e2d\u6587",
     languageEn: "EN",
   },
@@ -276,11 +290,11 @@ const EN: I18nDict = {
     sampleImages: "Sample Images",
   },
   home: {
-    title: "AI Image Prompt Hub",
+    title: "AI Image Prompt Gallery",
     description:
-      "AI Image Prompt Hub helps creators and teams build better AI image prompts with structured templates, searchable galleries, and professional build workflows.",
+      "AI Image Prompt Gallery helps creators and teams build better AI image prompts with structured templates, searchable galleries, and professional build workflows.",
     seoDescription:
-      "AI Image Prompt Hub for GPT Image 2 (GTP image 2) and Nano Banana workflows. Discover structured prompt templates, searchable gallery, and professional build flow.",
+      "AI Image Prompt Gallery for GPT Image 2 (GTP image 2) and Nano Banana workflows. Discover structured prompt templates, searchable gallery, and professional build flow.",
     seoKeywords:
       "GPT Image 2, GTP image 2, Nano Banana, AI image prompt, prompt template, prompt gallery, image generation, prompt engineering",
   },
@@ -412,14 +426,14 @@ const EN: I18nDict = {
     bottomBuyCredits: "Buy Credits",
   },
   gallery: {
-    title: "Gallery | AI Image Prompt Hub",
+    title: "Gallery | AI Image Prompt Gallery",
     description: "Browse prompt templates in a waterfall gallery and search by tags, title, description, and prompt content.",
     noResults: "No templates found for",
     viewTemplate: "View Template",
     loading: "Loading...",
   },
   pricingPage: {
-    title: "Pricing | AI Image Prompt Hub",
+    title: "Pricing | AI Image Prompt Gallery",
     metaDescription: "Buy one-time credit packs for AI image generation. Prompt browsing remains free.",
     missingCallbackSignature: "Missing callback signature or checkout id, cannot confirm payment.",
     confirmFailedPrefix: "Payment confirmation failed",
@@ -440,7 +454,7 @@ const EN: I18nDict = {
     freePlanHint: "Free plan stays free for prompt browsing.",
   },
   blogs: {
-    title: "Blogs | AI Image Prompt Hub",
+    title: "Blogs | AI Image Prompt Gallery",
     heading: "Blogs",
     desc: "Prompt engineering notes, image workflow breakdowns, and product updates.",
     empty: "No published articles yet.",
@@ -451,7 +465,7 @@ const EN: I18nDict = {
     notFoundDesc: "This article may be unpublished or removed.",
   },
   promptDetail: {
-    titleSuffix: "| AI Image Prompt Hub",
+    titleSuffix: "| AI Image Prompt Gallery",
     author: "Author",
     sourceUrl: "Source URL",
     promptTemplate: "Prompt Template",
@@ -461,7 +475,7 @@ const EN: I18nDict = {
     buildButton: "Build Image with Prompt",
   },
   build: {
-    title: "Build | AI Image Prompt Hub",
+    title: "Build | AI Image Prompt Gallery",
     description: "Professional conversational AI image builder. Configure template variables, set generation options, and render outputs in a dialogue workflow.",
     promptBuilder: "Prompt Builder",
     promptTemplate: "Prompt Template",
@@ -521,7 +535,7 @@ const EN: I18nDict = {
   },
   privacyPage: {
     title: "Privacy Policy",
-    metaDescription: "Privacy Policy for AI Image Prompt Hub.",
+    metaDescription: "Privacy Policy for AI Image Prompt Gallery.",
     legalBadge: "Legal",
     lastUpdated: "Last updated: April 30, 2026",
     sectionCollectTitle: "What We Collect",
@@ -544,12 +558,12 @@ const EN: I18nDict = {
   },
   termsPage: {
     title: "Terms of Service",
-    metaDescription: "Terms of Service for AI Image Prompt Hub.",
+    metaDescription: "Terms of Service for AI Image Prompt Gallery.",
     legalBadge: "Legal",
     lastUpdated: "Last updated: April 30, 2026",
     sectionAcceptanceTitle: "Acceptance of Terms",
     sectionAcceptanceBody:
-      "By using AI Image Prompt Hub, you agree to comply with these terms and all applicable laws.",
+      "By using AI Image Prompt Gallery, you agree to comply with these terms and all applicable laws.",
     sectionBillingTitle: "Credits & Billing",
     billingItems: [
       "Prompt template browsing is free.",
@@ -568,9 +582,9 @@ const EN: I18nDict = {
 };
 
 const ZH: I18nDict = {
-  siteName: "AI Image Prompt Hub",
+  siteName: "AI Image Prompt Gallery",
   footer: {
-    copyright: "© AI Image Prompt Hub",
+    copyright: "© AI Image Prompt Gallery",
     contactMe: "联系我：",
     privacyPolicy: "隐私政策",
     termsOfService: "服务条款",
@@ -588,6 +602,13 @@ const ZH: I18nDict = {
     newTemplate: "新建模版",
     clerkNotConfigured: "未配置 Clerk",
     searchTemplates: "搜索模板...",
+    filter: "筛选",
+    filterTitle: "筛选",
+    filterType: "类型",
+    filterTags: "标签",
+    filterAllTypes: "全部类型",
+    filterReset: "重置",
+    filterApply: "应用",
     languageZh: "中文",
     languageEn: "EN",
   },
@@ -599,10 +620,10 @@ const ZH: I18nDict = {
     sampleImages: "示例图片",
   },
   home: {
-    title: "AI Image Prompt Hub",
-    description: "AI Image Prompt Hub：用结构化模板、可搜索模板库和专业构建流程，帮助创作者和团队更高质量地生成 AI 图像提示词。",
+    title: "AI Image Prompt Gallery",
+    description: "AI Image Prompt Gallery：用结构化模板、可搜索模板库和专业构建流程，帮助创作者和团队更高质量地生成 AI 图像提示词。",
     seoDescription:
-      "AI Image Prompt Hub，支持 GPT Image 2（GTP image 2）与 Nano Banana 热门生图工作流。提供结构化 Prompt 模板、可搜索画廊与专业化构建流程。",
+      "AI Image Prompt Gallery，支持 GPT Image 2（GTP image 2）与 Nano Banana 热门生图工作流。提供结构化 Prompt 模板、可搜索画廊与专业化构建流程。",
     seoKeywords:
       "GPT Image 2, GTP image 2, Nano Banana, AI 图像提示词, Prompt 模板, 提示词画廊, 生图, 提示词工程",
   },
@@ -734,14 +755,14 @@ const ZH: I18nDict = {
     bottomBuyCredits: "购买积分",
   },
   gallery: {
-    title: "模板库 | AI Image Prompt Hub",
+    title: "模板库 | AI Image Prompt Gallery",
     description: "瀑布流浏览 Prompt 模板，并按标签、标题、描述和 Prompt 内容搜索。",
     noResults: "未找到匹配模板",
     viewTemplate: "查看模板",
     loading: "加载中...",
   },
   pricingPage: {
-    title: "定价 | AI Image Prompt Hub",
+    title: "定价 | AI Image Prompt Gallery",
     metaDescription: "购买一次性积分包用于 AI 生图。Prompt 模板浏览永久免费。",
     missingCallbackSignature: "缺少回调签名或 checkout id，无法确认支付。",
     confirmFailedPrefix: "支付确认失败",
@@ -762,7 +783,7 @@ const ZH: I18nDict = {
     freePlanHint: "免费方案可持续用于模板浏览。",
   },
   blogs: {
-    title: "博客 | AI Image Prompt Hub",
+    title: "博客 | AI Image Prompt Gallery",
     heading: "博客",
     desc: "围绕 Prompt 方法论、生图工作流拆解与产品更新的内容专栏。",
     empty: "暂无已发布文章。",
@@ -773,7 +794,7 @@ const ZH: I18nDict = {
     notFoundDesc: "这篇文章可能尚未发布或已删除。",
   },
   promptDetail: {
-    titleSuffix: "| AI Image Prompt Hub",
+    titleSuffix: "| AI Image Prompt Gallery",
     author: "作者",
     sourceUrl: "来源链接",
     promptTemplate: "Prompt 模板",
@@ -783,7 +804,7 @@ const ZH: I18nDict = {
     buildButton: "用该 Prompt 生成图片",
   },
   build: {
-    title: "构建 | AI Image Prompt Hub",
+    title: "构建 | AI Image Prompt Gallery",
     description: "专业对话式 AI 绘图工作台。配置模板变量与参数，在对话流中生成并追踪提示词输出。",
     promptBuilder: "Prompt 构建器",
     promptTemplate: "Prompt 模板",
@@ -843,7 +864,7 @@ const ZH: I18nDict = {
   },
   privacyPage: {
     title: "隐私政策",
-    metaDescription: "AI Image Prompt Hub 的隐私政策。",
+    metaDescription: "AI Image Prompt Gallery 的隐私政策。",
     legalBadge: "法律文档",
     lastUpdated: "最后更新：2026年4月30日",
     sectionCollectTitle: "我们收集的信息",
@@ -866,12 +887,12 @@ const ZH: I18nDict = {
   },
   termsPage: {
     title: "服务条款",
-    metaDescription: "AI Image Prompt Hub 的服务条款。",
+    metaDescription: "AI Image Prompt Gallery 的服务条款。",
     legalBadge: "法律文档",
     lastUpdated: "最后更新：2026年4月30日",
     sectionAcceptanceTitle: "条款接受",
     sectionAcceptanceBody:
-      "使用 AI Image Prompt Hub 即表示你同意遵守本条款及适用法律法规。",
+      "使用 AI Image Prompt Gallery 即表示你同意遵守本条款及适用法律法规。",
     sectionBillingTitle: "积分与计费",
     billingItems: [
       "Prompt 模板浏览免费。",

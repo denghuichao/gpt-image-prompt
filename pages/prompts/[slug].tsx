@@ -22,6 +22,20 @@ function normalizePromptText(input: string) {
     .replace(/\\n/g, "\n");
 }
 
+function tryFormatJsonPrompt(input: string) {
+  const raw = String(input || "").trim();
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return JSON.stringify(parsed, null, 2);
+    }
+  } catch {
+    // not a valid JSON prompt template
+  }
+  return null;
+}
+
 const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
@@ -32,6 +46,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
   const canonical = absoluteUrl(path, localeTyped);
   const hreflangs = buildHrefLang(path);
   const ogImage = template.images[0] || absoluteUrl("/prompt_images/1.jpeg", localeTyped);
+  const formattedJsonPrompt = tryFormatJsonPrompt(template.prompt_template);
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
@@ -177,9 +192,15 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
                 {dict.promptDetail.promptTemplate}
               </p>
-              <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-night-300">
-                {normalizePromptText(template.prompt_template)}
-              </pre>
+              {formattedJsonPrompt ? (
+                <pre className="overflow-x-auto whitespace-pre rounded-xl border border-night-700 bg-night-950/60 p-4 font-mono text-xs leading-relaxed text-night-300">
+                  {formattedJsonPrompt}
+                </pre>
+              ) : (
+                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-night-300">
+                  {normalizePromptText(template.prompt_template)}
+                </pre>
+              )}
             </div>
 
             {/* Variables */}

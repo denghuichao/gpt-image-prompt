@@ -75,6 +75,20 @@ function renderHighlightedPromptTemplate(templatePrompt: string) {
   });
 }
 
+function tryFormatJsonPrompt(input: string) {
+  const raw = String(input || "").trim();
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return JSON.stringify(parsed, null, 2);
+    }
+  } catch {
+    // not a valid JSON prompt template
+  }
+  return null;
+}
+
 function resolveImageGridColsClass(count: number) {
   if (count <= 1) return "grid-cols-1";
   if (count === 2) return "grid-cols-2";
@@ -109,8 +123,16 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     () => (isTemplateMode ? templates.find((t) => t.slug === templateSlug) || templates[0] : undefined),
     [templates, templateSlug, isTemplateMode],
   );
+  const jsonPromptTemplate = useMemo(
+    () => tryFormatJsonPrompt(activeTemplate?.prompt_template || ""),
+    [activeTemplate?.prompt_template],
+  );
+  const isJsonTemplate = Boolean(jsonPromptTemplate);
   const templateKey = isTemplateMode ? activeTemplate?.slug || templateSlug : "default";
-  const variableDefs = useMemo(() => extractVariableDefs(activeTemplate), [activeTemplate]);
+  const variableDefs = useMemo(
+    () => (isJsonTemplate ? [] : extractVariableDefs(activeTemplate)),
+    [activeTemplate, isJsonTemplate],
+  );
 
   const [variableValues, setVariableValues]         = useState<Record<string, string>>({});
   const [promptEditMode, setPromptEditMode]         = useState<PromptEditMode>("variables");
@@ -136,13 +158,13 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   useEffect(() => {
     if (!isTemplateMode || !activeTemplate) return;
     const nextValues: Record<string, string> = {};
-    for (const v of extractVariableDefs(activeTemplate)) nextValues[v.key] = v.example || "";
+    for (const v of (isJsonTemplate ? [] : extractVariableDefs(activeTemplate))) nextValues[v.key] = v.example || "";
     setVariableValues(nextValues);
-    setDirectPrompt(fillPrompt(activeTemplate.prompt_template, nextValues));
-    setPromptEditMode("variables");
+    setDirectPrompt(isJsonTemplate ? (jsonPromptTemplate || activeTemplate.prompt_template) : fillPrompt(activeTemplate.prompt_template, nextValues));
+    setPromptEditMode(isJsonTemplate ? "direct" : "variables");
     setReferenceImages([]);
     setActiveReferencePreview("");
-  }, [activeTemplate, isTemplateMode]);
+  }, [activeTemplate, isTemplateMode, isJsonTemplate, jsonPromptTemplate]);
 
   useEffect(() => {
     if (!directPromptEditorRef) return;
@@ -250,7 +272,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
 
     const templatePromptToSend =
       promptEditMode === "direct"
-        ? normalizePromptText(directPrompt)
+        ? (isJsonTemplate ? directPrompt : normalizePromptText(directPrompt))
         : finalPrompt;
     const promptToSend = isTemplateMode ? templatePromptToSend : chatInput;
     if (!promptToSend.trim()) return;
@@ -526,25 +548,33 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       </div>
                     )}
 
-                    <div className="mb-3 inline-flex rounded-xl border border-night-700 bg-night-900/70 p-1">
-                      <button
-                        type="button"
-                        onClick={() => setPromptEditMode("variables")}
-                        className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "variables" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
-                      >
-                        {dict.build.promptModeVariables}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDirectPrompt(finalPrompt || activeTemplate.prompt_template);
-                          setPromptEditMode("direct");
-                        }}
-                        className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "direct" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
-                      >
-                        {dict.build.promptModeDirect}
-                      </button>
-                    </div>
+                    {isJsonTemplate ? (
+                      <div className="mb-3 inline-flex rounded-xl border border-night-700 bg-night-900/70 p-1">
+                        <span className="rounded-lg bg-night-700 px-3 py-1.5 text-xs text-night-50">
+                          {dict.build.promptModeDirect}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="mb-3 inline-flex rounded-xl border border-night-700 bg-night-900/70 p-1">
+                        <button
+                          type="button"
+                          onClick={() => setPromptEditMode("variables")}
+                          className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "variables" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
+                        >
+                          {dict.build.promptModeVariables}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDirectPrompt(finalPrompt || activeTemplate.prompt_template);
+                            setPromptEditMode("direct");
+                          }}
+                          className={`rounded-lg px-3 py-1.5 text-xs transition ${promptEditMode === "direct" ? "bg-night-700 text-night-50" : "text-night-400 hover:text-night-200"}`}
+                        >
+                          {dict.build.promptModeDirect}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Variable inputs / direct prompt editor */}
                     {promptEditMode === "variables" ? (
@@ -566,7 +596,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                     ) : (
                       <div className="mb-4">
                         <label className="mb-1 block text-xs font-medium text-night-400">
-                          {dict.build.directPromptLabel}
+                          {isJsonTemplate ? `${dict.build.directPromptLabel} (JSON)` : dict.build.directPromptLabel}
                         </label>
                         <textarea
                           ref={setDirectPromptEditorRef}

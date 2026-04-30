@@ -13,7 +13,9 @@ export default function SiteFooter() {
     <footer className="border-t border-night-800/70 bg-night-950/70">
       <div className="mx-auto flex w-full max-w-[1960px] flex-col gap-3 px-4 py-5 text-xs text-night-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <p>{dict.footer.copyright}</p>
+          <p className="font-brand text-base italic leading-none tracking-[0.01em] text-night-300 sm:text-lg">
+            {dict.footer.copyright}
+          </p>
           <div className="flex items-center gap-2 text-night-400">
             <span>{dict.footer.contactMe}</span>
             <a

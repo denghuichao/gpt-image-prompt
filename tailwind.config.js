@@ -11,6 +11,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        brand: ['"Cormorant Garamond"', "Georgia", "serif"],
         display: ['"Fraunces"', "Georgia", "serif"],
         sans: ['"Sora"', "system-ui", "sans-serif"],
         mono: ['"Fira Code"', "Menlo", "monospace"],

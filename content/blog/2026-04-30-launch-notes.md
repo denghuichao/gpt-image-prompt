@@ -1,5 +1,5 @@
 ---
-title: "AI Image Prompt Hub 上线记录：为什么先做模板，再做生图"
+title: "AI Image Prompt Gallery 上线记录：为什么先做模板，再做生图"
 excerpt: "这篇文章介绍站点的核心设计：先沉淀可复用 Prompt 模板，再通过 Build 工作流完成高质量出图。"
 date: "2026-04-30"
 tags:

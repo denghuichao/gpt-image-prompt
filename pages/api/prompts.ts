@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createHash, randomUUID } from "crypto";
 import {
-  getPromptTemplates,
   getPromptTemplatesPage,
   upsertPromptTemplate,
   type PromptVariable,
@@ -88,16 +87,38 @@ function normalizeRemoteImageUrl(url: string) {
   return trimmed;
 }
 
+function parseTagsParam(input: string | string[] | undefined) {
+  const raw = Array.isArray(input) ? input.join(",") : (input || "");
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     try {
       const cursorRaw = req.query.cursor;
       const limitRaw = req.query.limit;
       const qRaw = req.query.q;
+      const styleRaw = req.query.style;
+      const tagsRaw = req.query.tags;
+      const tagsModeRaw = req.query.tags_mode;
       const cursor = typeof cursorRaw === "string" ? Number(cursorRaw) : 0;
       const limit = typeof limitRaw === "string" ? Number(limitRaw) : 24;
       const q = typeof qRaw === "string" ? qRaw : "";
-      const cacheKey = JSON.stringify({ cursor, limit, q: q.trim().toLowerCase() });
+      const style = typeof styleRaw === "string" ? styleRaw.trim() : "";
+      const tags = parseTagsParam(tagsRaw);
+      const tagsMode = tagsModeRaw === "and" ? "and" : "or";
+      const cacheKey = JSON.stringify({
+        cursor,
+        limit,
+        q: q.trim().toLowerCase(),
+        style: style.toLowerCase(),
+        tags: tags.map((tag) => tag.toLowerCase()),
+        tagsMode,
+      });
       const cached = getPromptPageCache(cacheKey);
       if (cached) {
         res.setHeader("X-Prompts-Cache", "HIT");
@@ -105,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(200).json(cached);
       }
 
-      const page = await getPromptTemplatesPage({ cursor, limit, q });
+      const page = await getPromptTemplatesPage({ cursor, limit, q, style, tags, tagsMode });
       setPromptPageCache(cacheKey, page);
       res.setHeader("X-Prompts-Cache", "MISS");
       res.setHeader("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60");

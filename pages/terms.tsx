@@ -16,7 +16,7 @@ const TermsPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{dict.termsPage.title} | AI Image Prompt Hub</title>
+        <title>{dict.termsPage.title} | AI Image Prompt Gallery</title>
         <meta
           name="description"
           content={dict.termsPage.metaDescription}

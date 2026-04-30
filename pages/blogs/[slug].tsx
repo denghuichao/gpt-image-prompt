@@ -40,7 +40,7 @@ const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
   return (
     <>
       <Head>
-        <title>{`${post.title} | AI Image Prompt Hub`}</title>
+        <title>{`${post.title} | AI Image Prompt Gallery`}</title>
         <meta name="description" content={post.excerpt || post.title} />
         <link rel="canonical" href={canonical} />
         {hreflangs.map((item) => (

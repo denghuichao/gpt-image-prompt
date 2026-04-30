@@ -16,7 +16,7 @@ const PrivacyPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{dict.privacyPage.title} | AI Image Prompt Hub</title>
+        <title>{dict.privacyPage.title} | AI Image Prompt Gallery</title>
         <meta
           name="description"
           content={dict.privacyPage.metaDescription}
