@@ -78,8 +78,8 @@ function resolveImageGridColsClass(count: number) {
 }
 
 function resolveImageGalleryWidthClass(count: number) {
-  if (count <= 2) return "w-1/2";
-  return "w-3/4";
+  if (count <= 1) return "w-1/2";
+  return "w-full";
 }
 
 function shouldUseSquareImageTiles(count: number) {
