@@ -447,7 +447,7 @@ export default function SiteHeader() {
                   value={search}
                   onChange={(e) => updateGallerySearch(e.target.value)}
                   placeholder={dict.nav.searchTemplates}
-                  className="h-full w-full bg-transparent px-4 text-sm text-night-100 placeholder:text-night-500 outline-none"
+                  className="header-search-input h-full w-full bg-transparent px-4 text-sm text-night-100 placeholder:text-night-500 outline-none"
                 />
                 <button
                   type="button"
@@ -543,7 +543,7 @@ export default function SiteHeader() {
                   value={search}
                   onChange={(e) => updateGallerySearch(e.target.value)}
                   placeholder={dict.nav.searchTemplates}
-                  className="w-full rounded-xl border border-night-700 bg-night-900/80 px-3 py-2 text-sm text-night-100 placeholder:text-night-500 outline-none transition focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.08)]"
+                  className="header-search-input w-full rounded-xl border border-night-700 bg-night-900/80 px-3 py-2 text-sm text-night-100 placeholder:text-night-500 outline-none transition focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.08)]"
                 />
                 <button
                   type="button"

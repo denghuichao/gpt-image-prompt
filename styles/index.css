@@ -133,3 +133,14 @@
 .cl-dividerText {
   color: #94a3b8 !important;
 }
+
+/* Keep dark style for header search input even when browser autofill kicks in */
+.header-search-input:-webkit-autofill,
+.header-search-input:-webkit-autofill:hover,
+.header-search-input:-webkit-autofill:focus,
+.header-search-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f2f0ff !important;
+  box-shadow: 0 0 0 1000px #111827 inset !important;
+  caret-color: #f2f0ff !important;
+  transition: background-color 9999s ease-out 0s;
+}
