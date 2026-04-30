@@ -1,6 +1,5 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,6 +15,39 @@ type PromptsPageResponse = {
   hasMore: boolean;
   error?: string;
 };
+
+function TemplateCardImage({
+  images,
+  title,
+}: {
+  images: string[];
+  title: string;
+}) {
+  const candidates = useMemo(
+    () => images.map((s) => String(s || "").trim()).filter(Boolean),
+    [images],
+  );
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    setIdx(0);
+  }, [candidates.join("|")]);
+
+  const src = candidates[idx] || "/prompt_images/1.jpeg";
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={`${title} sample image`}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))}
+      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+    />
+  );
+}
 
 function mergeBySlug(prev: PromptTemplate[], next: PromptTemplate[]) {
   const map = new Map<string, PromptTemplate>();
@@ -137,13 +169,7 @@ const GalleryPage: NextPage = () => {
                 >
                   <Link href={`/prompts/${template.slug}`} locale={locale} className="block">
                     <div className="relative">
-                      <Image
-                        src={template.images[0]}
-                        alt={`${template.title} sample image`}
-                        width={1200}
-                        height={1600}
-                        className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04]"
-                      />
+                      <TemplateCardImage images={template.images} title={template.title} />
 
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/20 to-transparent" />
 
