@@ -578,7 +578,7 @@ const ZH: I18nDict = {
   },
   nav: {
     home: "首页",
-    gallery: "模板库",
+    gallery: "画廊",
     build: "构建",
     pricing: "定价",
     blogs: "博客",
