@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
-import pricingConfig from "../../config/pricing.json";
+import { pricingConfig } from "../../utils/pricingConfig";
 import {
   createPurchaseOrder,
   markPurchaseCheckoutCreated,

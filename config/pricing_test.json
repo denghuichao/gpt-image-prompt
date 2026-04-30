@@ -25,8 +25,8 @@
     },
      {
       "key": "starter",
-      "name_zh": "入门积分包",
-      "name_en": "Starter Pack",
+      "name_zh": "入门积分包(TEST)",
+      "name_en": "Starter Pack(TEST)",
       "label_zh": "一次性购买",
       "label_en": "one-time",
       "price_usd": 4.9,
@@ -54,8 +54,8 @@
     },
     {
       "key": "lite",
-      "name_zh": "入门积分包",
-      "name_en": "Lite Pack",
+      "name_zh": "入门积分包(TEST)", 
+      "name_en": "Lite Pack(TEST)",
       "label_zh": "一次性购买",
       "label_en": "one-time",
       "price_usd": 9.9,
@@ -83,8 +83,8 @@
     },
     {
       "key": "pro",
-      "name_zh": "专业积分包",
-      "name_en": "Pro Pack",
+      "name_zh": "专业积分包(TEST)",
+      "name_en": "Pro Pack(TEST)",
       "label_zh": "一次性购买",
       "label_en": "one-time",
       "price_usd": 29.9,

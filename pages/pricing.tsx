@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
-import pricingConfig from "../config/pricing.json";
+import { pricingConfig } from "../utils/pricingConfig";
 import { absoluteUrl, buildHrefLang } from "../utils/seo";
 
 const PricingPage: NextPage = () => {
@@ -181,7 +181,7 @@ const PricingPage: NextPage = () => {
     creem_product_id: plan.creem_product_id,
     items: (isEn ? plan.features_en : plan.features_zh) && (isEn ? plan.features_en : plan.features_zh).length > 0
       ? (isEn ? plan.features_en : plan.features_zh)
-      : (isEn ? ["Plan features to be configured"] : ["请在 pricing.json 中配置套餐功能"]),
+      : (isEn ? ["Plan features to be configured"] : ["请在 pricing 配置中设置套餐功能"]),
   }));
 
   return (

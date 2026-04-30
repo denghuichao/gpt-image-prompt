@@ -8,7 +8,7 @@ import path from "path";
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
-import pricingConfig from "../config/pricing.json";
+import { pricingConfig } from "../utils/pricingConfig";
 import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
 
 const SHUFFLE_BATCH_SIZE = 12;
