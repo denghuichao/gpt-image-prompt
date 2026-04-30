@@ -43,15 +43,22 @@ function fillPrompt(templatePrompt: string, values: Record<string, string>): str
   for (const [key, value] of Object.entries(values)) {
     output = output.split(`{${key}}`).join(value.trim() || `{${key}}`);
   }
-  return output;
+  return normalizePromptText(output);
 }
 
 function keyLabel(key: string): string {
   return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
+function normalizePromptText(input: string) {
+  return String(input || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n");
+}
+
 function renderHighlightedPromptTemplate(templatePrompt: string) {
-  const parts = templatePrompt.split(/(\{[^}]+\})/g);
+  const parts = normalizePromptText(templatePrompt).split(/(\{[^}]+\})/g);
   return parts.map((part, idx) => {
     if (!/^\{[^}]+\}$/.test(part)) {
       return <span key={`t-${idx}`} className="text-night-300">{part}</span>;
@@ -62,6 +69,21 @@ function renderHighlightedPromptTemplate(templatePrompt: string) {
       </span>
     );
   });
+}
+
+function resolveImageGridColsClass(count: number) {
+  if (count <= 1) return "grid-cols-1";
+  if (count === 2) return "grid-cols-2";
+  return "grid-cols-3";
+}
+
+function resolveImageGalleryWidthClass(count: number) {
+  if (count <= 2) return "w-1/2";
+  return "w-3/4";
+}
+
+function shouldUseSquareImageTiles(count: number) {
+  return count >= 4;
 }
 
 const selectClass = "w-full rounded-xl border border-night-700 bg-night-950/60 px-3 py-2 font-mono text-xs text-night-100 outline-none transition focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.06)]";
@@ -145,6 +167,35 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     void load();
     return () => { cancelled = true; };
   }, [activeTemplate, initialMessages, isTemplateMode, templateKey]);
+
+  useEffect(() => {
+    if (!isTemplateMode || !activeTemplate || !hasLoadedConversation) return;
+    const introId = `assistant-template-intro-${activeTemplate.slug}`;
+    setMessages((prev) => {
+      const sampleImages = (activeTemplate.images || []).slice(0, 9);
+      const introTemplate = dict.build.templateIntro
+        .replace("{title}", activeTemplate.title)
+        .replace("{count}", String(sampleImages.length));
+      const introText = `${introTemplate} ${dict.build.templateIntroTail}`.trim();
+      const introTags = [
+        activeTemplate.style || dict.common.uncategorized,
+        ...(activeTemplate.tags || []).slice(0, 5).map((tag) => `#${tag}`),
+      ];
+      const introMessage: ChatMessage = {
+        id: introId,
+        role: "assistant",
+        content: introText,
+        tags: introTags,
+        images: sampleImages,
+        transient: false,
+      };
+      const withoutIntro = prev.filter((m) => m.id !== introId);
+      return [
+        introMessage,
+        ...withoutIntro,
+      ];
+    });
+  }, [isTemplateMode, activeTemplate, hasLoadedConversation, dict.build.templateIntro, dict.build.templateIntroTail, dict.common.uncategorized]);
 
   const finalPrompt = useMemo(() => {
     if (!activeTemplate) return "";
@@ -401,7 +452,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
                         {dict.build.promptTemplate}
                       </p>
-                      <p className="font-mono text-xs leading-relaxed">
+                      <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
                         {renderHighlightedPromptTemplate(activeTemplate.prompt_template)}
                       </p>
                     </div>
@@ -429,15 +480,11 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                 )}
 
                 {/* Generation config */}
-                <div className="mb-4 rounded-xl border border-night-700 bg-night-800/40 p-3">
-                  <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-night-500">
-                    {dict.build.generationConfig}
-                  </p>
+                <div className="mb-4">
                   <label className="mb-1 block text-[11px] text-night-500">{dict.build.aspectRatio}</label>
                   <select value={ratio} onChange={(e) => setRatio(e.target.value)} className={selectClass}>
                     {ASPECT_RATIOS.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
-                  <p className="mt-2 text-[11px] text-night-700">{dict.build.minimalSettings}</p>
                 </div>
 
                 {/* Reference images */}
@@ -555,7 +602,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                           : "rounded-2xl rounded-bl-md border border-night-700/70 bg-night-800/80 px-3 py-2.5 text-sm leading-relaxed text-night-100"
                       }>
                         {!(msg.loading && (!msg.images || msg.images.length === 0)) && (
-                          <p className="text-inherit">{msg.content}</p>
+                          <p className="whitespace-pre-wrap break-words text-inherit">{normalizePromptText(msg.content)}</p>
                         )}
 
                         {msg.tags && msg.tags.length > 0 && !(msg.loading && (!msg.images || msg.images.length === 0)) && (
@@ -581,16 +628,22 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                         )}
 
                         {msg.images && msg.images.length > 0 && (
-                          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            {msg.images.map((src, idx) => (
+                          <div className={`mt-3 mr-auto grid gap-2 ${resolveImageGridColsClass(msg.images.length)} ${resolveImageGalleryWidthClass(msg.images.length)}`}>
+                            {msg.images.map((src, idx) => {
+                              const useSquareTiles = shouldUseSquareImageTiles(msg.images.length);
+                              return (
                               <div
                                 key={`${msg.id}-img-${idx}`}
                                 className="relative overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
                               >
-                                <button type="button" onClick={() => setActiveGeneratedPreview(src)} className="block w-full text-left">
+                                <button type="button" onClick={() => setActiveGeneratedPreview(src)} className="block w-full bg-night-900 text-left">
                                   {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={src} alt={`Generated preview ${idx + 1}`} className="h-auto w-full object-cover" />
+                                  <img
+                                    src={src}
+                                    alt={`Generated preview ${idx + 1}`}
+                                    className={useSquareTiles ? "aspect-square w-full object-cover" : "h-auto w-full object-contain"}
+                                  />
                                 </button>
                                 <span className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-night-950/75 to-transparent" />
                                 <span className="absolute bottom-2 left-2 text-[10px] text-night-200">
@@ -609,7 +662,8 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                                   </button>
                                 </span>
                               </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
 

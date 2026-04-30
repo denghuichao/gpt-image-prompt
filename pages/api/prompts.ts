@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import {
   getPromptTemplates,
   getPromptTemplatesPage,
@@ -19,6 +19,18 @@ function slugify(input: string) {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function toStorageSafeSegment(input: string) {
+  const normalized = String(input || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const hash = createHash("sha1").update(input).digest("hex").slice(0, 8);
+  return (normalized ? normalized.slice(0, 48) : "template") + `-${hash}`;
 }
 
 type CreatePromptBody = {
@@ -46,7 +58,8 @@ async function uploadTemplateImage(base64: string, slug: string, idx: number) {
     : mime.includes("webp")
       ? "webp"
       : "png";
-  const path = `templates/${slug}/${Date.now()}_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
+  const safeSlug = toStorageSafeSegment(slug);
+  const path = `templates/${safeSlug}/${Date.now()}_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
 
   const { error } = await supabaseAdmin
     .storage
@@ -86,7 +99,8 @@ async function uploadTemplateImageFromUrl(url: string, slug: string, idx: number
       : "jpg";
   const bytes = Buffer.from(await res.arrayBuffer());
 
-  const path = `templates/${slug}/${Date.now()}_url_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
+  const safeSlug = toStorageSafeSegment(slug);
+  const path = `templates/${safeSlug}/${Date.now()}_url_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
   const { error } = await supabaseAdmin
     .storage
     .from(SUPABASE_PROMPT_IMAGES_BUCKET)

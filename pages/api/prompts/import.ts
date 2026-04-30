@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import { isAdminRequest } from "../../../utils/admin";
@@ -40,6 +40,18 @@ function slugify(input: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function toStorageSafeSegment(input: string) {
+  const normalized = String(input || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const hash = createHash("sha1").update(input).digest("hex").slice(0, 8);
+  return (normalized ? normalized.slice(0, 48) : "template") + `-${hash}`;
+}
+
 async function uploadBinary(bytes: Buffer, contentType: string, slug: string, label: string, idx: number) {
   const ext = contentType.includes("png")
     ? "png"
@@ -49,7 +61,8 @@ async function uploadBinary(bytes: Buffer, contentType: string, slug: string, la
         ? "gif"
         : "jpg";
 
-  const storagePath = `templates/${slug}/${Date.now()}_${label}_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
+  const safeSlug = toStorageSafeSegment(slug);
+  const storagePath = `templates/${safeSlug}/${Date.now()}_${label}_${idx}_${randomUUID().slice(0, 8)}.${ext}`;
   const { error } = await supabaseAdmin
     .storage
     .from(SUPABASE_PROMPT_IMAGES_BUCKET)

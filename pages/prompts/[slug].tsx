@@ -12,6 +12,13 @@ import {
 } from "../../utils/promptTemplates";
 import { absoluteUrl, buildHrefLang, safeJsonLd } from "../../utils/seo";
 
+function normalizePromptText(input: string) {
+  return String(input || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n");
+}
+
 const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
@@ -85,7 +92,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           {/* Left: metadata & prompts — flat layout, no nested cards */}
-          <section className="flex flex-col gap-6">
+          <section className="flex flex-col gap-6 rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
             {/* Title block */}
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
@@ -129,18 +136,8 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
                 {dict.promptDetail.promptTemplate}
               </p>
-              <pre className="whitespace-pre-wrap rounded-xl border border-night-700 bg-night-950/60 p-4 font-mono text-xs leading-relaxed text-night-300">
-                {template.prompt_template}
-              </pre>
-            </div>
-
-            {/* Final prompt */}
-            <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-glow-500">
-                {dict.promptDetail.finalPrompt}
-              </p>
-              <pre className="whitespace-pre-wrap rounded-xl border border-glow-500/20 bg-glow-500/5 p-4 font-mono text-xs leading-relaxed text-night-200">
-                {template.final_prompt || template.prompt_template}
+              <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-night-300">
+                {normalizePromptText(template.prompt_template)}
               </pre>
             </div>
 
@@ -171,7 +168,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3">
-              <CopyButton text={template.final_prompt || template.prompt_template} />
+              <CopyButton text={normalizePromptText(template.final_prompt || template.prompt_template)} />
               <Link
                 href={{ pathname: "/build", query: { template: template.slug } }}
                 locale={locale}
@@ -184,7 +181,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
           </section>
 
           {/* Right: masonry image gallery */}
-          <section>
+          <section className="rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
             <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
               {dict.common.sampleImages}
             </p>
@@ -272,5 +269,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return { notFound: true };
   }
 
-  return { props: { template } };
+  return {
+    props: {
+      // Ensure all optional fields are JSON-serializable for Next.js SSR props.
+      template: JSON.parse(JSON.stringify(template)),
+    },
+  };
 };

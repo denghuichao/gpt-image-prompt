@@ -24,6 +24,10 @@ function mergeBySlug(prev: PromptTemplate[], next: PromptTemplate[]) {
   return Array.from(map.values());
 }
 
+function normalizePromptText(input: string) {
+  return input.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+}
+
 const GalleryPage: NextPage = () => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
@@ -143,7 +147,7 @@ const GalleryPage: NextPage = () => {
 
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/90 via-night-950/20 to-transparent" />
 
-                      <div className="absolute inset-x-0 bottom-0 p-4 transition-opacity duration-300 group-hover:opacity-0">
+                      <div className="absolute inset-x-0 bottom-0 px-3 py-4 transition-opacity duration-300 group-hover:opacity-0">
                         <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-night-400">
                           {template.style || dict.common.uncategorized}
                         </p>
@@ -162,17 +166,26 @@ const GalleryPage: NextPage = () => {
                         </div>
                       </div>
 
-                      <div className="absolute inset-0 flex flex-col justify-end rounded-2xl bg-night-950/94 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-night-500">
-                          {dict.common.finalPromptPreview}
-                        </p>
-                        <p className="line-clamp-8 font-mono text-[11px] leading-relaxed text-night-200">
-                          {template.final_prompt || template.prompt_template}
-                        </p>
-                        <div className="mt-4 flex items-center gap-2 border-t border-night-700/60 pt-3">
-                          <span className="h-1.5 w-1.5 rounded-full bg-glow-500" />
-                          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-glow-400">
-                            View Template →
+                      <div className="absolute inset-0 flex flex-col justify-end rounded-2xl bg-night-950/92 px-3 py-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <div className="w-full rounded-xl bg-night-600/45 px-2.5 py-3 backdrop-blur-[1px]">
+                          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-night-300">
+                            {template.style || dict.common.uncategorized}
+                          </p>
+                          <h3 className="mt-1.5 line-clamp-2 font-display text-lg font-semibold italic leading-tight text-night-50">
+                            {template.title}
+                          </h3>
+                          <div className="mt-2.5 flex flex-wrap gap-1.5">
+                            {template.tags.slice(0, 6).map((tag) => (
+                              <span
+                                key={`${template.slug}-hover-${tag}`}
+                                className="rounded-full border border-night-500/60 bg-night-900/70 px-2 py-0.5 font-mono text-[10px] text-night-200"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="mt-3 line-clamp-5 whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-night-100">
+                            {normalizePromptText(template.final_prompt || template.prompt_template)}
                           </p>
                         </div>
                       </div>
@@ -188,7 +201,7 @@ const GalleryPage: NextPage = () => {
               <div className="py-5 text-center">
                 <span className="inline-flex items-center gap-2 text-xs text-night-500">
                   <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-night-500 border-t-transparent" />
-                  Loading...
+                  {dict.gallery.loading}
                 </span>
               </div>
             )}

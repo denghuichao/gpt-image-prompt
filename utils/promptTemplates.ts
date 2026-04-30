@@ -50,7 +50,7 @@ type PromptTemplateRow = {
 };
 
 function normalizeRow(row: PromptTemplateRow): PromptTemplate {
-  return {
+  const normalized: PromptTemplate = {
     slug: row.slug,
     title: row.title,
     desc: row.description,
@@ -59,11 +59,14 @@ function normalizeRow(row: PromptTemplateRow): PromptTemplate {
     tags: Array.isArray(row.tags) ? row.tags : [],
     author: row.author,
     source_url: row.source_url,
-    style: row.style || undefined,
-    final_prompt: row.final_prompt || undefined,
     variables: Array.isArray(row.variables) ? row.variables : [],
     default_model: row.default_model || "gpt-image-2",
   };
+
+  if (row.style) normalized.style = row.style;
+  if (row.final_prompt) normalized.final_prompt = row.final_prompt;
+
+  return normalized;
 }
 
 export async function getPromptTemplates(): Promise<PromptTemplate[]> {

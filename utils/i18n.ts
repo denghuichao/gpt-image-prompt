@@ -106,6 +106,8 @@ export interface I18nDict {
     title: string;
     description: string;
     noResults: string;
+    viewTemplate: string;
+    loading: string;
   };
   pricingPage: {
     title: string;
@@ -179,6 +181,8 @@ export interface I18nDict {
     generationSucceededNoImage: string;
     youLabel: string;
     aiBotLabel: string;
+    templateIntro: string;
+    templateIntroTail: string;
   };
   promptNewPage: {
     title: string;
@@ -402,6 +406,8 @@ const EN: I18nDict = {
     title: "Gallery | AI Image Prompt Hub",
     description: "Browse prompt templates in a waterfall gallery and search by tags, title, description, and prompt content.",
     noResults: "No templates found for",
+    viewTemplate: "View Template",
+    loading: "Loading...",
   },
   pricingPage: {
     title: "Pricing | AI Image Prompt Hub",
@@ -475,6 +481,8 @@ const EN: I18nDict = {
     generationSucceededNoImage: "Generation succeeded, but no displayable image was returned",
     youLabel: "You",
     aiBotLabel: "AI Image Bot",
+    templateIntro: "You are using \"{title}\". Here are {count} sample images to quickly understand style, composition, and lighting.",
+    templateIntroTail: "Review them first, then fill variables on the left and generate.",
   },
   promptNewPage: {
     title: "New Prompt Template",
@@ -711,6 +719,8 @@ const ZH: I18nDict = {
     title: "模板库 | AI Image Prompt Hub",
     description: "瀑布流浏览 Prompt 模板，并按标签、标题、描述和 Prompt 内容搜索。",
     noResults: "未找到匹配模板",
+    viewTemplate: "查看模板",
+    loading: "加载中...",
   },
   pricingPage: {
     title: "定价 | AI Image Prompt Hub",
@@ -784,6 +794,8 @@ const ZH: I18nDict = {
     generationSucceededNoImage: "生成成功，但未返回可展示图片",
     youLabel: "你",
     aiBotLabel: "AI Image Bot",
+    templateIntro: "你当前使用的是「{title}」模板。下面是该模板的 {count} 张样例图，可快速了解风格、构图和光影。",
+    templateIntroTail: "你可以先看样例，再在左侧填写变量并生成。",
   },
   promptNewPage: {
     title: "新增 Prompt 模版",
