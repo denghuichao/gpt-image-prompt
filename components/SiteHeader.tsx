@@ -275,7 +275,7 @@ export default function SiteHeader() {
           <Link
             href="/"
             locale={locale}
-            className="font-display text-xl font-semibold italic text-night-50 transition hover:text-glow-300"
+            className="font-display text-[22px] font-semibold italic leading-[1.06] tracking-tight text-night-50 transition hover:text-glow-300 sm:text-2xl"
           >
             {dict.siteName}
           </Link>
