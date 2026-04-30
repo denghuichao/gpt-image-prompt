@@ -399,7 +399,7 @@ export default function SiteHeader() {
             {dict.siteName}
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 lg:flex">
             {navItems.map((item) => {
               const isActive =
                 item.href === "/"
@@ -428,7 +428,7 @@ export default function SiteHeader() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-night-700 bg-night-900/70 text-night-200 transition hover:border-night-500 hover:text-night-50 md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-night-700 bg-night-900/70 text-night-200 transition hover:border-night-500 hover:text-night-50 lg:hidden"
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileMenuOpen}
           >
@@ -436,7 +436,7 @@ export default function SiteHeader() {
           </button>
 
           {isGallery && (
-            <div className="hidden sm:block">
+            <div className="hidden lg:block">
               <label htmlFor="gallery-header-search" className="sr-only">
                 {dict.nav.searchTemplates}
               </label>
@@ -465,7 +465,7 @@ export default function SiteHeader() {
             </div>
           )}
 
-          <div className="hidden items-center gap-1 rounded-full border border-night-700 bg-night-900/60 p-1 sm:flex">
+          <div className="hidden items-center gap-1 rounded-full border border-night-700 bg-night-900/60 p-1 lg:flex">
             <button
               type="button"
               onClick={() => switchLocale("zh")}
@@ -507,7 +507,7 @@ export default function SiteHeader() {
       </div>
 
       {mobileMenuOpen && (
-        <div className="border-t border-night-800/70 bg-night-950/95 px-4 pb-4 pt-3 md:hidden">
+        <div className="border-t border-night-800/70 bg-night-950/95 px-4 pb-4 pt-3 lg:hidden">
           <nav className="flex flex-col gap-1">
             {navItems.map((item) => {
               const isActive =
