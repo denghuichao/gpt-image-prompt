@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
+import { verifyToken } from "@clerk/backend";
 import { pricingConfig } from "../../utils/pricingConfig";
 import {
   createPurchaseOrder,
@@ -7,17 +8,44 @@ import {
   markPurchaseFailed,
 } from "../../utils/creditsStore";
 
-function resolveUserId(req: NextApiRequest): string | null {
+function getBearerToken(req: NextApiRequest): string | null {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme?.toLowerCase() !== "bearer" || !token) return null;
+  return token;
+}
+
+async function resolveUserId(req: NextApiRequest): Promise<string | null> {
   const hasClerk = Boolean(
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
       process.env.CLERK_SECRET_KEY,
   );
   if (!hasClerk) return "local-dev-user";
+
   try {
     const { userId } = getAuth(req);
-    return userId ?? null;
+    if (userId) return userId;
   } catch {
-    return "local-dev-user";
+    // fall through to bearer verification
+  }
+
+  const bearer = getBearerToken(req);
+  if (!bearer) return null;
+  try {
+    const verified = await verifyToken(bearer, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
+    const sub =
+      typeof verified.data === "object" &&
+      verified.data !== null &&
+      "sub" in verified.data &&
+      typeof (verified.data as { sub?: unknown }).sub === "string"
+        ? (verified.data as { sub: string }).sub
+        : null;
+    return typeof sub === "string" && sub.length > 0 ? sub : null;
+  } catch {
+    return null;
   }
 }
 
@@ -35,7 +63,7 @@ export default async function handler(
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  const userId = resolveUserId(req);
+  const userId = await resolveUserId(req);
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   const { planKey } = req.body as { planKey?: string };

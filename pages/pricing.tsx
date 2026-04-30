@@ -12,7 +12,7 @@ import { absoluteUrl, buildHrefLang } from "../utils/seo";
 const PricingPage: NextPage = () => {
   const router = useRouter();
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const locale = resolveLocale(router.locale);
   const localeTyped = locale === "en" ? "en" : "zh";
   const canonical = absoluteUrl("/pricing", localeTyped);
@@ -154,9 +154,13 @@ const PricingPage: NextPage = () => {
     setLoadingPlan(planKey);
     setBuyError("");
     try {
+      const token = hasClerkKey ? await getToken() : null;
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ planKey }),
       });
       const data = await res.json() as { checkoutUrl?: string; error?: string };
