@@ -47,14 +47,34 @@ function getSubFromVerifiedToken(data: unknown): string | null {
   return typeof sub === "string" && sub.length > 0 ? sub : null;
 }
 
-async function verifyAndExtractSub(token: string): Promise<string | null> {
+function keyMode(value: string | undefined, keyType: "pk" | "sk") {
+  if (!value) return "missing";
+  if (keyType === "pk") {
+    if (value.startsWith("pk_live_")) return "live";
+    if (value.startsWith("pk_test_")) return "test";
+    return "unknown";
+  }
+  if (value.startsWith("sk_live_")) return "live";
+  if (value.startsWith("sk_test_")) return "test";
+  return "unknown";
+}
+
+async function verifyAndExtractSub(
+  token: string,
+): Promise<{ sub: string | null; error?: string }> {
   try {
     const verified = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
-    return getSubFromVerifiedToken(verified.data);
-  } catch {
-    return null;
+    return { sub: getSubFromVerifiedToken(verified.data) };
+  } catch (error) {
+    return {
+      sub: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : "token_verification_failed",
+    };
   }
 }
 
@@ -66,6 +86,8 @@ export async function resolveRequestUserId(
   const referer = String(req.headers.referer || "");
   const hasAuthHeader = Boolean(req.headers.authorization);
   const hasCookieHeader = Boolean(req.headers.cookie);
+  const pkMode = keyMode(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, "pk");
+  const skMode = keyMode(process.env.CLERK_SECRET_KEY, "sk");
 
   if (!hasClerkConfig()) {
     console.log("[auth.resolve] local-dev fallback", { host, origin, referer });
@@ -88,8 +110,11 @@ export async function resolveRequestUserId(
   }
 
   const bearer = getBearerToken(req);
+  let bearerError: string | null = null;
   if (bearer) {
-    const sub = await verifyAndExtractSub(bearer);
+    const result = await verifyAndExtractSub(bearer);
+    const sub = result.sub;
+    bearerError = result.error || null;
     if (sub) {
       console.log("[auth.resolve] success via bearer", {
         host,
@@ -99,11 +124,22 @@ export async function resolveRequestUserId(
       });
       return { userId: sub, via: "bearer" };
     }
+    console.error("[auth.resolve] bearer token invalid", {
+      host,
+      origin,
+      referer,
+      bearerError,
+      pkMode,
+      skMode,
+    });
   }
 
   const sessionToken = getSessionTokenFromCookie(req);
+  let sessionError: string | null = null;
   if (sessionToken) {
-    const sub = await verifyAndExtractSub(sessionToken);
+    const result = await verifyAndExtractSub(sessionToken);
+    const sub = result.sub;
+    sessionError = result.error || null;
     if (sub) {
       console.log("[auth.resolve] success via __session cookie token", {
         host,
@@ -113,8 +149,21 @@ export async function resolveRequestUserId(
       });
       return { userId: sub, via: "session-cookie" };
     }
+    console.error("[auth.resolve] __session token invalid", {
+      host,
+      origin,
+      referer,
+      sessionError,
+      pkMode,
+      skMode,
+    });
   }
 
+  const reason = bearer
+    ? "invalid_bearer_token"
+    : sessionToken
+      ? "invalid_session_cookie_token"
+      : "no_token_present";
   console.error("[auth.resolve] failed", {
     host,
     origin,
@@ -123,7 +172,11 @@ export async function resolveRequestUserId(
     hasCookieHeader,
     hasBearerToken: Boolean(bearer),
     hasSessionCookieToken: Boolean(sessionToken),
+    bearerError,
+    sessionError,
+    pkMode,
+    skMode,
     nodeEnv: process.env.NODE_ENV,
   });
-  return { userId: null, via: "none", reason: "no_valid_auth_context" };
+  return { userId: null, via: "none", reason };
 }
