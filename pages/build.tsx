@@ -7,7 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
 import { tryFormatJsonPrompt } from "../utils/jsonPrompt";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
@@ -44,10 +44,14 @@ function extractVariableDefs(template: PromptTemplate | undefined): VariableDef[
 }
 
 function fillPrompt(templatePrompt: string, values: Record<string, string>): string {
-  let output = templatePrompt;
-  for (const [key, value] of Object.entries(values)) {
-    output = output.split(`{${key}}`).join(value.trim() || `{${key}}`);
-  }
+  const output = String(templatePrompt || "").replace(/\{([^}]+)\}/g, (full, rawKey: string) => {
+    const key = String(rawKey || "").trim();
+    if (!key) return full;
+    const value = values[key];
+    if (typeof value !== "string") return full;
+    const trimmed = value.trim();
+    return trimmed || full;
+  });
   return normalizePromptText(output);
 }
 
@@ -136,7 +140,8 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
   const [hasLoadedConversation, setHasLoadedConversation] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [directPromptEditorRef, setDirectPromptEditorRef] = useState<HTMLTextAreaElement | null>(null);
+  const directPromptEditorRef = useRef<HTMLTextAreaElement | null>(null);
+  const builderScrollRef = useRef<HTMLDivElement | null>(null);
 
   const initialMessages = useMemo<ChatMessage[]>(() => {
     return [];
@@ -153,11 +158,30 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     setActiveReferencePreview("");
   }, [activeTemplate, isTemplateMode, isJsonTemplate, jsonPromptTemplate]);
 
-  useEffect(() => {
-    if (!directPromptEditorRef) return;
-    directPromptEditorRef.style.height = "auto";
-    directPromptEditorRef.style.height = `${directPromptEditorRef.scrollHeight}px`;
-  }, [directPromptEditorRef, directPrompt, promptEditMode]);
+  useLayoutEffect(() => {
+    const textarea = directPromptEditorRef.current;
+    if (!textarea) return;
+    const isFocused = document.activeElement === textarea;
+    const prevTextareaScrollTop = textarea.scrollTop;
+    const prevPanelScrollTop = builderScrollRef.current?.scrollTop ?? 0;
+    const prevSelectionStart = textarea.selectionStart;
+    const prevSelectionEnd = textarea.selectionEnd;
+
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
+    if (isFocused) {
+      textarea.scrollTop = prevTextareaScrollTop;
+      if (builderScrollRef.current) builderScrollRef.current.scrollTop = prevPanelScrollTop;
+      if (typeof prevSelectionStart === "number" && typeof prevSelectionEnd === "number") {
+        try {
+          textarea.setSelectionRange(prevSelectionStart, prevSelectionEnd);
+        } catch {
+          // ignore selection restore failures on edge browsers
+        }
+      }
+    }
+  }, [directPrompt, promptEditMode]);
 
   useEffect(() => {
     if (isTemplateMode) return;
@@ -488,7 +512,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                 </h2>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+              <div ref={builderScrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
                 {activeTemplate && (
                   <>
                     {/* Template info accordion */}
@@ -586,7 +610,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                           {isJsonTemplate ? `${dict.build.directPromptLabel} (JSON)` : dict.build.directPromptLabel}
                         </label>
                         <textarea
-                          ref={setDirectPromptEditorRef}
+                          ref={directPromptEditorRef}
                           value={directPrompt}
                           onChange={(e) => setDirectPrompt(e.target.value)}
                           rows={1}
