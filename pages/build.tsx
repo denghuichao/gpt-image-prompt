@@ -146,6 +146,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const directPromptEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const builderScrollRef = useRef<HTMLDivElement | null>(null);
+  const [expandedMessageMap, setExpandedMessageMap] = useState<Record<string, boolean>>({});
 
   const initialMessages = useMemo<ChatMessage[]>(() => {
     return [];
@@ -431,6 +432,16 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       if (prev < 0 || activeGeneratedPreviewImages.length === 0) return prev;
       return (prev + 1) % activeGeneratedPreviewImages.length;
     });
+  }
+
+  function shouldCollapseMessageText(content: string) {
+    const normalized = normalizePromptText(content || "");
+    const lineBreakCount = normalized.split("\n").length;
+    return lineBreakCount > 10 || normalized.length > 380;
+  }
+
+  function toggleMessageExpanded(messageId: string) {
+    setExpandedMessageMap((prev) => ({ ...prev, [messageId]: !prev[messageId] }));
   }
 
   async function handleDownloadImage(src: string) {
@@ -726,15 +737,15 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                     {msg.role !== "system" && (
                       <div className={`mb-1.5 flex items-center gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                         {msg.role === "assistant" && (
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-glow-500/30 bg-glow-500/10 text-glow-300">
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-indigo-400/30 bg-indigo-500/15 text-indigo-200">
                             <SparklesIcon className="h-3.5 w-3.5" />
                           </span>
                         )}
-                        <span className={`text-[11px] font-medium ${msg.role === "user" ? "text-emerald-300" : "text-glow-300"}`}>
+                        <span className={`text-[11px] font-medium ${msg.role === "user" ? "text-slate-300" : "text-indigo-300"}`}>
                           {msg.role === "user" ? dict.build.youLabel : dict.build.aiBotLabel}
                         </span>
                         {msg.role === "user" && (
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-400/35 bg-emerald-500/20 text-emerald-100">
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-500/35 bg-slate-700/60 text-slate-100">
                             <UserIcon className="h-3.5 w-3.5" />
                           </span>
                         )}
@@ -744,12 +755,30 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                     {msg.role !== "system" && (
                       <div className={
                         msg.role === "user"
-                          ? "rounded-2xl rounded-br-md border border-emerald-400/30 bg-emerald-500/15 px-3 py-2.5 text-sm leading-relaxed text-emerald-50"
+                          ? "rounded-2xl rounded-br-md border border-slate-500/35 bg-slate-800/75 px-3 py-2.5 text-sm leading-relaxed text-slate-100"
                           : "rounded-2xl rounded-bl-md border border-night-700/70 bg-night-800/80 px-3 py-2.5 text-sm leading-relaxed text-night-100"
                       }>
-                        {!(msg.loading && (!msg.images || msg.images.length === 0)) && (
-                          <p className="whitespace-pre-wrap break-words text-inherit">{normalizePromptText(msg.content)}</p>
-                        )}
+                        {!(msg.loading && (!msg.images || msg.images.length === 0)) && (() => {
+                          const normalizedText = normalizePromptText(msg.content);
+                          const canCollapse = shouldCollapseMessageText(normalizedText);
+                          const expanded = Boolean(expandedMessageMap[msg.id]);
+                          return (
+                            <div>
+                              <div className={`${canCollapse && !expanded ? "max-h-[15.5rem] overflow-hidden" : ""}`}>
+                                <p className="whitespace-pre-wrap break-words text-inherit">{normalizedText}</p>
+                              </div>
+                              {canCollapse && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleMessageExpanded(msg.id)}
+                                  className="mt-2 text-xs text-night-300 transition hover:text-night-100"
+                                >
+                                  {expanded ? dict.build.collapse : `...... ${dict.build.expand}`}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {msg.tags && msg.tags.length > 0 && !(msg.loading && (!msg.images || msg.images.length === 0)) && (
                           <div className="mt-2 flex flex-wrap gap-1.5">
