@@ -66,6 +66,61 @@ function normalizePromptText(input: string) {
     .replace(/\\n/g, "\n");
 }
 
+function normalizeAssistantMessageForLocale(
+  message: ChatMessage,
+  currentDict: ReturnType<typeof t>,
+  zhDict: ReturnType<typeof t>,
+  enDict: ReturnType<typeof t>,
+): ChatMessage {
+  if (message.role !== "assistant") {
+    return message;
+  }
+
+  const raw = normalizePromptText(message.content || "").trim();
+  const zhBuild = zhDict.build;
+  const enBuild = enDict.build;
+  const curBuild = currentDict.build;
+
+  let nextContent = raw;
+  if (raw === zhBuild.generationDone || raw === enBuild.generationDone) {
+    nextContent = curBuild.generationDone;
+  } else if (raw === zhBuild.generationSucceededNoImage || raw === enBuild.generationSucceededNoImage) {
+    nextContent = curBuild.generationSucceededNoImage;
+  } else if (raw === zhBuild.generating || raw === enBuild.generating) {
+    nextContent = curBuild.generating;
+  } else {
+    const failPrefixes = [zhBuild.generationFailedPrefix, enBuild.generationFailedPrefix];
+    for (const prefix of failPrefixes) {
+      if (raw === prefix) {
+        nextContent = curBuild.generationFailedPrefix;
+        break;
+      }
+      if (raw.startsWith(`${prefix}:`) || raw.startsWith(`${prefix}：`)) {
+        const suffix = raw.slice(prefix.length + 1).trim();
+        nextContent = suffix
+          ? `${curBuild.generationFailedPrefix}: ${suffix}`
+          : curBuild.generationFailedPrefix;
+        break;
+      }
+    }
+  }
+
+  const normalizedTags = Array.isArray(message.tags)
+    ? message.tags.map((tag) => {
+      const text = String(tag || "").trim();
+      const match = text.match(/^(Aspect Ratio|画幅比例)\s*:\s*(.+)$/);
+      if (!match) return text;
+      return `${curBuild.aspectRatio}:${match[2].trim()}`;
+    })
+    : message.tags;
+
+  return {
+    ...message,
+    content: nextContent,
+    tags: normalizedTags,
+  };
+}
+
 function renderHighlightedPromptTemplate(templatePrompt: string) {
   const parts = normalizePromptText(templatePrompt).split(/(\{[^}]+\})/g);
   return parts.map((part, idx) => {
@@ -107,6 +162,8 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   const canonical = absoluteUrl("/build", localeTyped);
   const hreflangs = buildHrefLang("/build");
   const dict = t(locale);
+  const zhDict = t("zh");
+  const enDict = t("en");
   const templateSlug = typeof router.query.template === "string" ? router.query.template : "";
   const isTemplateMode = Boolean(templateSlug);
 
@@ -208,7 +265,12 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
         if (!cancelled) {
           const normalized = Array.isArray(stored)
             ? stored
-              .map((m: ChatMessage) => ({ ...m, transient: false }))
+              .map((m: ChatMessage) => normalizeAssistantMessageForLocale(
+                { ...m, transient: false },
+                dict,
+                zhDict,
+                enDict,
+              ))
               .filter((m: ChatMessage) => m.role !== "system")
             : [];
           setMessages(normalized.length > 0 ? normalized : initialMessages);
@@ -220,7 +282,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     }
     void load();
     return () => { cancelled = true; };
-  }, [activeTemplate, initialMessages, isTemplateMode, templateKey]);
+  }, [activeTemplate, dict, enDict, initialMessages, isTemplateMode, templateKey, zhDict]);
 
   useEffect(() => {
     if (!isTemplateMode || !activeTemplate || !hasLoadedConversation) return;
