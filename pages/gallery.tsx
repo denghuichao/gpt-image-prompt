@@ -163,7 +163,7 @@ const GalleryPage: NextPage = () => {
         ))}
       </Head>
 
-      <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1960px] px-3 py-6 sm:px-5 lg:px-6">
         {noResults ? (
           <section className="py-20 text-center">
             <p className="font-display text-xl italic text-night-400">
@@ -173,11 +173,11 @@ const GalleryPage: NextPage = () => {
           </section>
         ) : (
           <>
-            <section className="columns-1 gap-5 sm:columns-2 xl:columns-3 2xl:columns-4">
+            <section className="columns-2 gap-3 sm:columns-3 xl:columns-4 2xl:columns-5">
               {templates.map((template) => (
                 <article
                   key={template.slug}
-                  className="group relative mb-5 break-inside-avoid overflow-hidden rounded-2xl border border-night-700 bg-night-800 shadow-card transition-all duration-300 hover:border-glow-500/30 hover:shadow-card-hover"
+                  className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-night-700 bg-night-800 shadow-card transition-all duration-300 hover:border-glow-500/30 hover:shadow-card-hover"
                 >
                   <Link href={`/prompts/${template.slug}`} locale={locale} className="block">
                     <div className="relative">

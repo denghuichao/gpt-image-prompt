@@ -504,7 +504,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
         ))}
       </Head>
 
-      <main className="mx-auto h-[calc(100vh-72px)] max-w-[1960px] px-4 py-4 sm:px-6 lg:px-8">
+      <main className="mx-auto h-[100dvh] max-w-[1960px] px-4 py-4 sm:px-6 lg:px-8">
         <section className={`grid h-full min-h-0 grid-cols-1 gap-3 ${isTemplateMode ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]" : ""}`}>
 
           {/* ── Left panel: Prompt Builder ──────────────────────────── */}
@@ -870,7 +870,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       </main>
 
       {activeGeneratedPreview && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-night-950/90 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-night-950/90 p-4" role="dialog" aria-modal="true">
           <button
             type="button"
             className="absolute inset-0 cursor-default"

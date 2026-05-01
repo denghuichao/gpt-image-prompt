@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 import type { ComponentType, PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
 import "../styles/index.css";
@@ -49,9 +50,9 @@ const clerkAppearance = {
 
 function AppLayout({ Component, pageProps }: AppProps) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-[100dvh] flex-col">
       <SiteHeader />
-      <div className="flex-1 pt-[72px]">
+      <div className="min-h-0 flex-1">
         <Component {...pageProps} />
       </div>
       <SiteFooter />
@@ -59,11 +60,78 @@ function AppLayout({ Component, pageProps }: AppProps) {
   );
 }
 
-export default function MyApp({ Component, pageProps }: AppProps) {
+function BuildOverlayLayout({ Component, pageProps }: AppProps) {
+  const [canHoverReveal, setCanHoverReveal] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
+  const [showFooter, setShowFooter] = useState(true);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => {
+      const canHover = mql.matches;
+      setCanHoverReveal(canHover);
+      setShowHeader(!canHover);
+      setShowFooter(!canHover);
+    };
+    update();
+    const add = mql.addEventListener ? mql.addEventListener.bind(mql) : mql.addListener.bind(mql);
+    const remove = mql.removeEventListener ? mql.removeEventListener.bind(mql) : mql.removeListener.bind(mql);
+    add("change", update as EventListener);
+    return () => remove("change", update as EventListener);
+  }, []);
+
+  return (
+    <div className="flex min-h-[100dvh] flex-col">
+      <div className="min-h-0 flex-1">
+        <Component {...pageProps} />
+      </div>
+
+      {canHoverReveal && (
+        <>
+          <div
+            className="fixed inset-x-0 top-0 z-[1400] h-7"
+            onMouseEnter={() => setShowHeader(true)}
+            onMouseLeave={() => setShowHeader(false)}
+          />
+          <div
+            className="fixed inset-x-0 bottom-0 z-[1400] h-8"
+            onMouseEnter={() => setShowFooter(true)}
+            onMouseLeave={() => setShowFooter(false)}
+          />
+        </>
+      )}
+
+      <div
+        className={`fixed inset-x-0 top-0 z-[1300] transition-transform duration-200 ${showHeader ? "translate-y-0" : "-translate-y-full"}`}
+        onMouseEnter={() => setShowHeader(true)}
+        onMouseLeave={() => canHoverReveal && setShowHeader(false)}
+      >
+        <SiteHeader />
+      </div>
+      <div
+        className={`fixed inset-x-0 bottom-0 z-[1300] transition-transform duration-200 ${showFooter ? "translate-y-0" : "translate-y-full"}`}
+        onMouseEnter={() => setShowFooter(true)}
+        onMouseLeave={() => canHoverReveal && setShowFooter(false)}
+      >
+        <SiteFooter />
+      </div>
+    </div>
+  );
+}
+
+export default function MyApp({ Component, pageProps, router }: AppProps) {
   const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const isBuildPage = router.pathname === "/build";
+
+  const renderLayout = () => {
+    if (isBuildPage) {
+      return <BuildOverlayLayout Component={Component} pageProps={pageProps} router={router} />;
+    }
+    return <AppLayout Component={Component} pageProps={pageProps} router={router} />;
+  };
 
   if (!hasClerkKey) {
-    return <AppLayout Component={Component} pageProps={pageProps} router={undefined as never} />;
+    return renderLayout();
   }
 
   return (
@@ -71,7 +139,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       {...(pageProps as Record<string, unknown>)}
       appearance={clerkAppearance}
     >
-      <AppLayout Component={Component} pageProps={pageProps} router={undefined as never} />
+      {renderLayout()}
     </SafeClerkProvider>
   );
 }

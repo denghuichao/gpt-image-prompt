@@ -383,7 +383,7 @@ export default function SiteHeader() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 ${
+      className={`sticky top-0 z-[1000] transition-all duration-300 ${
         scrolled
           ? "border-b border-night-700 bg-night-950/90 backdrop-blur-xl shadow-[0_1px_24px_rgba(0,0,0,0.4)]"
           : "border-b border-night-800/60 bg-night-950/70 backdrop-blur-md"
@@ -599,7 +599,7 @@ export default function SiteHeader() {
             onClick={() => setFilterOpen(false)}
             className="fixed inset-0 z-[1090] bg-black/45 backdrop-blur-[1px]"
           />
-          <aside className="fixed right-0 top-[72px] z-[1100] h-[calc(100vh-72px)] w-full max-w-md border-l border-night-700 bg-night-950/95 shadow-[-12px_0_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+          <aside className="fixed right-0 top-[72px] z-[1100] h-[calc(100dvh-72px)] w-full max-w-md border-l border-night-700 bg-night-950/95 shadow-[-12px_0_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
             <div className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-night-700 px-4 py-3">
                 <h3 className="text-sm font-semibold text-night-50">{dict.nav.filterTitle}</h3>
