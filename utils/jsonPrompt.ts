@@ -10,6 +10,10 @@ function normalizePotentialJsonInput(input: string) {
     .trim();
 }
 
+export function normalizeJsonPromptInput(input: string) {
+  return normalizePotentialJsonInput(input);
+}
+
 export function tryParseJsonPrompt(input: string): unknown | null {
   const raw = normalizePotentialJsonInput(input);
   if (!raw) return null;
@@ -18,6 +22,15 @@ export function tryParseJsonPrompt(input: string): unknown | null {
   } catch {
     return null;
   }
+}
+
+export function isJsonLikeButInvalid(input: string): boolean {
+  const raw = normalizePotentialJsonInput(input);
+  if (!raw) return false;
+  const wrappedByObject = raw.startsWith("{") && raw.endsWith("}");
+  const wrappedByArray = raw.startsWith("[") && raw.endsWith("]");
+  if (!wrappedByObject && !wrappedByArray) return false;
+  return tryParseJsonPrompt(raw) === null;
 }
 
 export function tryFormatJsonPrompt(input: string): string | null {
@@ -29,4 +42,3 @@ export function tryFormatJsonPrompt(input: string): string | null {
     return null;
   }
 }
-

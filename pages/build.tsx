@@ -9,7 +9,7 @@ import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { resolveLocale, t } from "../utils/i18n";
-import { tryFormatJsonPrompt } from "../utils/jsonPrompt";
+import { isJsonLikeButInvalid, tryFormatJsonPrompt } from "../utils/jsonPrompt";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
 import { absoluteUrl, buildHrefLang } from "../utils/seo";
 const ASPECT_RATIOS = ["auto", "21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"] as const;
@@ -118,7 +118,11 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     () => tryFormatJsonPrompt(activeTemplate?.prompt_template || ""),
     [activeTemplate?.prompt_template],
   );
-  const isJsonTemplate = Boolean(jsonPromptTemplate);
+  const isInvalidJsonLikeTemplate = useMemo(
+    () => isJsonLikeButInvalid(activeTemplate?.prompt_template || ""),
+    [activeTemplate?.prompt_template],
+  );
+  const isJsonTemplate = Boolean(jsonPromptTemplate) || isInvalidJsonLikeTemplate;
   const templateKey = isTemplateMode ? activeTemplate?.slug || templateSlug : "default";
   const variableDefs = useMemo(
     () => (isJsonTemplate ? [] : extractVariableDefs(activeTemplate)),
