@@ -399,6 +399,6 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
   walk(rootDir, "/prompt_images");
 
-  const previewImages = collected.slice(0, 30);
+  const previewImages = collected;
   return { props: { previewImages } };
 };
