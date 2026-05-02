@@ -139,7 +139,8 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
         const params = new URLSearchParams();
         params.set("cursor", String(cursor));
         params.set("limit", "100");
-        const res = await fetch(`/api/prompts/${encodeURIComponent(template.slug)}/gallery?${params.toString()}`);
+        params.set("slug", template.slug);
+        const res = await fetch(`/api/prompt-gallery?${params.toString()}`);
         const data = await res.json() as TemplateGalleryResponse;
         if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
         for (const item of data.items || []) {
