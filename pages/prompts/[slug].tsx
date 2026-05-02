@@ -1,8 +1,8 @@
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowDownTrayIcon, ArrowsPointingInIcon, ArrowsPointingOutIcon } from "@heroicons/react/24/solid";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
@@ -23,12 +23,25 @@ function normalizePromptText(input: string) {
     .replace(/\\n/g, "\n");
 }
 
+type TemplateGalleryItem = {
+  id: string;
+  url: string;
+  source: "sample" | "generated";
+  createdAt: string;
+};
+
+type TemplateGalleryResponse = {
+  items: TemplateGalleryItem[];
+  nextCursor: number | null;
+  hasMore: boolean;
+  error?: string;
+};
+
 const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const localeTyped = locale === "en" ? "en" : "zh";
   const dict = t(locale);
-  const images = template.images;
   const path = `/prompts/${template.slug}`;
   const canonical = absoluteUrl(path, localeTyped);
   const hreflangs = buildHrefLang(path);
@@ -37,17 +50,35 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [isDownloadingImage, setIsDownloadingImage] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [galleryItems, setGalleryItems] = useState<TemplateGalleryItem[]>([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+
+  const visibleGalleryItems = useMemo<TemplateGalleryItem[]>(() => {
+    if (galleryItems.length > 0) return galleryItems;
+    return template.images.map((url, idx) => ({
+      id: `sample-local-${idx}`,
+      url,
+      source: "sample",
+      createdAt: new Date(0).toISOString(),
+    }));
+  }, [galleryItems, template.images]);
+
+  const lightboxImages = useMemo(
+    () => visibleGalleryItems.map((item) => item.url).filter(Boolean),
+    [visibleGalleryItems],
+  );
 
   const openLightbox = (idx: number) => setLightboxIndex(idx);
   const closeLightbox = () => setLightboxIndex(null);
 
   const prev = useCallback(() => {
-    setLightboxIndex((i) => (i === null ? null : (i - 1 + images.length) % images.length));
-  }, [images.length]);
+    setLightboxIndex((i) => (i === null ? null : (i - 1 + lightboxImages.length) % lightboxImages.length));
+  }, [lightboxImages.length]);
 
   const next = useCallback(() => {
-    setLightboxIndex((i) => (i === null ? null : (i + 1) % images.length));
-  }, [images.length]);
+    setLightboxIndex((i) => (i === null ? null : (i + 1) % lightboxImages.length));
+  }, [lightboxImages.length]);
 
   async function handleDownloadImage(src: string) {
     if (!src || isDownloadingImage) return;
@@ -93,6 +124,47 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIndex, prev, next]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setGalleryItems([]);
+    setGalleryLoading(true);
+
+    async function loadAll() {
+      const merged: TemplateGalleryItem[] = [];
+      const seen = new Set<string>();
+      let cursor: number | null = 0;
+      let page = 0;
+
+      while (cursor !== null && page < 60) {
+        const params = new URLSearchParams();
+        params.set("cursor", String(cursor));
+        params.set("limit", "100");
+        const res = await fetch(`/api/prompts/${encodeURIComponent(template.slug)}/gallery?${params.toString()}`);
+        const data = await res.json() as TemplateGalleryResponse;
+        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+        for (const item of data.items || []) {
+          if (!item.url || seen.has(item.url)) continue;
+          seen.add(item.url);
+          merged.push(item);
+        }
+        cursor = data.hasMore ? data.nextCursor : null;
+        page += 1;
+      }
+
+      if (!cancelled) setGalleryItems(merged);
+    }
+
+    void loadAll()
+      .catch(() => {
+        if (!cancelled) setGalleryItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setGalleryLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [template.slug]);
+
   return (
     <>
       <Head>
@@ -120,7 +192,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
               name: template.title,
               description: template.desc,
               url: canonical,
-              image: template.images,
+              image: visibleGalleryItems.map((item) => item.url),
               author: { "@type": "Person", name: template.author },
               keywords: template.tags.join(", "),
             }),
@@ -128,135 +200,193 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
         />
       </Head>
 
-      <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          {/* Left: metadata & prompts — flat layout, no nested cards */}
-          <section className="flex flex-col gap-6 rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
-            {/* Title block */}
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
-                {template.style || dict.common.uncategorized}
-              </p>
-              <h1 className="mt-2 font-display text-3xl font-semibold italic leading-tight text-night-50 sm:text-4xl">
-                {template.title}
-              </h1>
-              <div className="mt-3 max-w-none text-sm leading-relaxed text-night-300 [&_a]:text-glow-300 [&_a]:underline [&_a]:decoration-glow-500/30 [&_blockquote]:border-l-2 [&_blockquote]:border-night-700 [&_blockquote]:pl-4 [&_blockquote]:text-night-400 [&_code]:rounded [&_code]:bg-night-900 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:mt-5 [&_h1]:font-display [&_h1]:text-2xl [&_h1]:italic [&_h1]:text-night-50 [&_h2]:mt-4 [&_h2]:font-display [&_h2]:text-xl [&_h2]:italic [&_h2]:text-night-50 [&_h3]:mt-4 [&_h3]:font-display [&_h3]:text-lg [&_h3]:italic [&_h3]:text-night-100 [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-5 [&_p]:my-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5">
-                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                  {template.desc || ""}
-                </ReactMarkdown>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {template.tags.map((tag) => (
-                  <span
-                    key={`${template.slug}-${tag}`}
-                    className="rounded-full border border-night-700/60 bg-night-900/60 px-2.5 py-0.5 font-mono text-[10px] text-night-400"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 border-t border-night-800 pt-4">
-                <span className="flex items-baseline gap-2 text-xs">
-                  <span className="text-night-600 uppercase tracking-wider">{dict.promptDetail.author}</span>
-                  <span className="text-night-300">{template.author}</span>
-                </span>
-                <span className="flex items-baseline gap-2 text-xs min-w-0">
-                  <span className="shrink-0 text-night-600 uppercase tracking-wider">{dict.promptDetail.sourceUrl}</span>
-                  <a
-                    href={template.source_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="truncate text-glow-400 underline decoration-glow-500/30 transition hover:decoration-glow-400"
-                  >
-                    {template.source_url}
-                  </a>
-                </span>
-              </div>
-            </div>
+      <main className="relative mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">
+        {!showTemplateGallery ? (
+          <button
+            type="button"
+            onClick={() => setShowTemplateGallery(true)}
+            className="absolute right-2 top-2 z-[800] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800"
+            aria-label="Browse template gallery"
+            title="Browse gallery"
+          >
+            <ArrowsPointingOutIcon className="h-5 w-5" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowTemplateGallery(false)}
+            className="absolute right-2 top-2 z-[800] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800"
+            aria-label="Close template gallery"
+            title="Close gallery"
+          >
+            <ArrowsPointingInIcon className="h-5 w-5" />
+          </button>
+        )}
 
-            {/* Prompt template */}
-            <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
-                {dict.promptDetail.promptTemplate}
-              </p>
-              {formattedJsonPrompt ? (
-                <pre className="overflow-x-auto whitespace-pre rounded-xl border border-night-700 bg-night-950/60 p-4 font-mono text-xs leading-relaxed text-night-300">
-                  {formattedJsonPrompt}
-                </pre>
-              ) : (
-                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-night-300">
-                  {normalizePromptText(template.prompt_template)}
-                </pre>
-              )}
-            </div>
-
-            {/* Variables */}
-            {(template.variables || []).length > 0 && (
+        {!showTemplateGallery && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <section className="flex flex-col gap-6 rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
               <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
-                  {dict.promptDetail.variables}
+                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
+                  {template.style || dict.common.uncategorized}
                 </p>
-                <div className="space-y-2">
-                  {(template.variables || []).map((variable) => (
-                    <div
-                      key={`${template.slug}-${variable.key}`}
-                      className="rounded-xl border border-night-700/60 bg-night-900/40 px-4 py-3"
+                <h1 className="mt-2 font-display text-3xl font-semibold italic leading-tight text-night-50 sm:text-4xl">
+                  {template.title}
+                </h1>
+                <div className="mt-3 max-w-none text-sm leading-relaxed text-night-300 [&_a]:text-glow-300 [&_a]:underline [&_a]:decoration-glow-500/30 [&_blockquote]:border-l-2 [&_blockquote]:border-night-700 [&_blockquote]:pl-4 [&_blockquote]:text-night-400 [&_code]:rounded [&_code]:bg-night-900 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:mt-5 [&_h1]:font-display [&_h1]:text-2xl [&_h1]:italic [&_h1]:text-night-50 [&_h2]:mt-4 [&_h2]:font-display [&_h2]:text-xl [&_h2]:italic [&_h2]:text-night-50 [&_h3]:mt-4 [&_h3]:font-display [&_h3]:text-lg [&_h3]:italic [&_h3]:text-night-100 [&_li]:my-1 [&_ol]:my-3 [&_ol]:pl-5 [&_p]:my-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5">
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    {template.desc || ""}
+                  </ReactMarkdown>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {template.tags.map((tag) => (
+                    <span
+                      key={`${template.slug}-${tag}`}
+                      className="rounded-full border border-night-700/60 bg-night-900/60 px-2.5 py-0.5 font-mono text-[10px] text-night-400"
                     >
-                      <p className="font-mono text-xs font-semibold text-glow-300">{`{${variable.key}}`}</p>
-                      {variable.description && (
-                        <p className="mt-1 text-xs text-night-400">{variable.description}</p>
-                      )}
-                      {variable.example && (
-                        <p className="mt-0.5 text-[11px] text-night-600">{dict.promptDetail.example}: {variable.example}</p>
-                      )}
-                    </div>
+                      #{tag}
+                    </span>
                   ))}
                 </div>
+                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 border-t border-night-800 pt-4">
+                  <span className="flex items-baseline gap-2 text-xs">
+                    <span className="text-night-600 uppercase tracking-wider">{dict.promptDetail.author}</span>
+                    <span className="text-night-300">{template.author}</span>
+                  </span>
+                  <span className="flex items-baseline gap-2 text-xs min-w-0">
+                    <span className="shrink-0 text-night-600 uppercase tracking-wider">{dict.promptDetail.sourceUrl}</span>
+                    <a
+                      href={template.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate text-glow-400 underline decoration-glow-500/30 transition hover:decoration-glow-400"
+                    >
+                      {template.source_url}
+                    </a>
+                  </span>
+                </div>
               </div>
-            )}
 
-            {/* Actions */}
-            <div className="flex flex-wrap gap-3">
-              <CopyButton text={normalizePromptText(template.final_prompt || template.prompt_template)} />
-              <Link
-                href={{ pathname: "/build", query: { template: template.slug } }}
-                locale={locale}
-                className="inline-flex items-center gap-2 rounded-full bg-glow-500 px-5 py-2.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md"
-              >
-                {dict.promptDetail.buildButton}
-                <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </section>
+              <div>
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                  {dict.promptDetail.promptTemplate}
+                </p>
+                {formattedJsonPrompt ? (
+                  <pre className="overflow-x-auto whitespace-pre rounded-xl border border-night-700 bg-night-950/60 p-4 font-mono text-xs leading-relaxed text-night-300">
+                    {formattedJsonPrompt}
+                  </pre>
+                ) : (
+                  <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-night-300">
+                    {normalizePromptText(template.prompt_template)}
+                  </pre>
+                )}
+              </div>
 
-          {/* Right: masonry image gallery */}
-          <section className="rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
-            <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
-              {dict.common.sampleImages}
-            </p>
-            <div className="columns-1 gap-3 sm:columns-2">
-              {images.map((imageUrl, idx) => (
-                <figure
-                  key={`${template.slug}-${imageUrl}`}
-                  className="group mb-3 cursor-zoom-in overflow-hidden rounded-xl border border-night-700 break-inside-avoid"
-                  onClick={() => openLightbox(idx)}
+              {(template.variables || []).length > 0 && (
+                <div>
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                    {dict.promptDetail.variables}
+                  </p>
+                  <div className="space-y-2">
+                    {(template.variables || []).map((variable) => (
+                      <div
+                        key={`${template.slug}-${variable.key}`}
+                        className="rounded-xl border border-night-700/60 bg-night-900/40 px-4 py-3"
+                      >
+                        <p className="font-mono text-xs font-semibold text-glow-300">{`{${variable.key}}`}</p>
+                        {variable.description && (
+                          <p className="mt-1 text-xs text-night-400">{variable.description}</p>
+                        )}
+                        {variable.example && (
+                          <p className="mt-0.5 text-[11px] text-night-600">{dict.promptDetail.example}: {variable.example}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                <CopyButton text={normalizePromptText(template.final_prompt || template.prompt_template)} />
+                <Link
+                  href={{ pathname: "/build", query: { template: template.slug } }}
+                  locale={locale}
+                  className="inline-flex items-center gap-2 rounded-full bg-glow-500 px-5 py-2.5 text-sm font-semibold text-night-950 shadow-glow-sm transition hover:bg-glow-400 hover:shadow-glow-md"
                 >
-                  {/* Use native img so right-click copy keeps original source URL. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={imageUrl}
-                    alt={`${template.title} sample ${idx + 1}`}
-                    loading="lazy"
-                    className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-90"
-                  />
-                </figure>
+                  {dict.promptDetail.buildButton}
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
+                {dict.promptDetail.gallery}
+              </p>
+              <div className="columns-1 gap-3 sm:columns-2">
+                {visibleGalleryItems.map((item, idx) => (
+                  <figure
+                    key={`${template.slug}-${item.id}`}
+                    className="group relative mb-3 cursor-zoom-in overflow-hidden rounded-xl border border-night-700 break-inside-avoid"
+                    onClick={() => openLightbox(idx)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.url}
+                      alt={`${template.title} sample ${idx + 1}`}
+                      loading="lazy"
+                      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-90"
+                    />
+                    <span className="absolute bottom-2 left-2 rounded-full border border-night-600/70 bg-night-900/80 px-2 py-0.5 font-mono text-[10px] text-night-200">
+                      {item.source === "sample" ? "Sample" : "Generated"}
+                    </span>
+                  </figure>
+                ))}
+              </div>
+              {galleryLoading && (
+                <div className="pt-2 text-xs text-night-500">{dict.gallery.loading}</div>
+              )}
+            </section>
+          </div>
+        )}
+
+        {showTemplateGallery && (
+          <section>
+            <div className="columns-2 gap-3 sm:columns-3 xl:columns-4 2xl:columns-5">
+              {visibleGalleryItems.map((item, idx) => (
+                <article
+                  key={item.id}
+                  className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-night-700 bg-night-800 transition-all duration-300 hover:border-glow-500/30"
+                >
+                  <button type="button" onClick={() => openLightbox(idx)} className="block w-full text-left">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.url}
+                      alt={`${template.title} gallery ${idx + 1}`}
+                      loading="lazy"
+                      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-night-950/85 to-transparent" />
+                    <span className="absolute bottom-2 left-2 rounded-full border border-night-600/70 bg-night-900/80 px-2 py-0.5 font-mono text-[10px] text-night-200">
+                      {item.source === "sample" ? "Sample" : "Generated"}
+                    </span>
+                  </button>
+                </article>
               ))}
             </div>
+
+            {galleryLoading && (
+              <div className="py-5 text-center">
+                <span className="inline-flex items-center gap-2 text-xs text-night-500">
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-night-500 border-t-transparent" />
+                  {dict.gallery.loading}
+                </span>
+              </div>
+            )}
           </section>
-        </div>
+        )}
       </main>
 
-      {/* Lightbox */}
       {lightboxIndex !== null && (
         <div className="fixed inset-0 z-[1300] flex items-center justify-center bg-night-950/90 p-4" role="dialog" aria-modal="true">
           <button
@@ -268,7 +398,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
           <div className="relative z-[121] max-h-[92vh] max-w-[92vw]">
             <button
               type="button"
-              onClick={() => { void handleDownloadImage(images[lightboxIndex]); }}
+              onClick={() => { void handleDownloadImage(lightboxImages[lightboxIndex]); }}
               className="absolute right-12 top-2 rounded-full border border-night-600 bg-night-900/80 px-2.5 py-0.5 text-xs text-night-100 transition hover:border-night-400 disabled:opacity-60"
               disabled={isDownloadingImage}
               aria-label={dict.build.downloadImageAria}
@@ -286,7 +416,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
             >
               ×
             </button>
-            {images.length > 1 && (
+            {lightboxImages.length > 1 && (
               <>
                 <button
                   type="button"
@@ -307,10 +437,10 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
               </>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={images[lightboxIndex]} alt={`${template.title} sample ${lightboxIndex + 1}`} className="max-h-[92vh] max-w-[92vw] rounded-xl border border-night-700 object-contain" />
-            {images.length > 1 && (
+            <img src={lightboxImages[lightboxIndex]} alt={`${template.title} sample ${lightboxIndex + 1}`} className="max-h-[92vh] max-w-[92vw] rounded-xl border border-night-700 object-contain" />
+            {lightboxImages.length > 1 && (
               <p className="mt-2 text-center text-xs text-night-300">
-                {lightboxIndex + 1} / {images.length}
+                {lightboxIndex + 1} / {lightboxImages.length}
               </p>
             )}
           </div>
@@ -332,7 +462,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      // Ensure all optional fields are JSON-serializable for Next.js SSR props.
       template: JSON.parse(JSON.stringify(template)),
     },
   };

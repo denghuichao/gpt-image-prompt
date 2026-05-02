@@ -8,6 +8,9 @@ export type StoredChatMessage = {
   images?: string[];
   referenceImages?: Array<{ name: string; url: string }>;
   loading?: boolean;
+  is_private?: boolean;
+  // Backward compatibility for previously stored records.
+  is_public?: boolean;
 };
 
 type ConversationRow = {

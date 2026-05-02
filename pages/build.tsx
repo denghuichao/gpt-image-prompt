@@ -23,6 +23,9 @@ type ChatMessage = {
   referenceImages?: Array<{ name: string; url: string }>;
   loading?: boolean;
   transient?: boolean;
+  is_private?: boolean;
+  // Backward compatibility for old conversation rows.
+  is_public?: boolean;
 };
 
 type VariableDef = { key: string; description?: string; example?: string };
@@ -114,10 +117,15 @@ function normalizeAssistantMessageForLocale(
     })
     : message.tags;
 
+  const resolvedPrivate = typeof message.is_private === "boolean"
+    ? message.is_private
+    : (typeof message.is_public === "boolean" ? !message.is_public : false);
+
   return {
     ...message,
     content: nextContent,
     tags: normalizedTags,
+    is_private: resolvedPrivate,
   };
 }
 
@@ -504,6 +512,22 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
 
   function toggleMessageExpanded(messageId: string) {
     setExpandedMessageMap((prev) => ({ ...prev, [messageId]: !prev[messageId] }));
+  }
+
+  function makeAssistantMessagePrivate(messageId: string) {
+    setMessages((prev) => prev.map((msg) => {
+      if (msg.id !== messageId || msg.role !== "assistant") return msg;
+      if (msg.is_private) return msg;
+      return { ...msg, is_private: true };
+    }));
+  }
+
+  function makeAssistantMessagePublic(messageId: string) {
+    setMessages((prev) => prev.map((msg) => {
+      if (msg.id !== messageId || msg.role !== "assistant") return msg;
+      if (!msg.is_private) return msg;
+      return { ...msg, is_private: false };
+    }));
   }
 
   async function handleDownloadImage(src: string) {
@@ -901,6 +925,33 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                               </div>
                               );
                             })}
+                          </div>
+                        )}
+
+                        {msg.role === "assistant" && msg.images && msg.images.length > 0 && !msg.loading && (
+                          <div className="mt-2">
+                            {(typeof msg.is_private === "boolean"
+                              ? msg.is_private
+                              : (typeof msg.is_public === "boolean" ? !msg.is_public : false)) ? (
+                              <div className="inline-flex items-center gap-2">
+                                <span className="text-xs text-night-400">{dict.build.privateLabel}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => makeAssistantMessagePublic(msg.id)}
+                                  className="text-xs text-night-300 transition hover:text-night-100"
+                                >
+                                  {dict.build.makePublic}
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => makeAssistantMessagePrivate(msg.id)}
+                                className="text-xs text-night-300 transition hover:text-night-100"
+                              >
+                                {dict.build.makePrivate}
+                              </button>
+                            )}
                           </div>
                         )}
 

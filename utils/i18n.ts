@@ -153,6 +153,7 @@ export interface I18nDict {
     author: string;
     sourceUrl: string;
     promptTemplate: string;
+    gallery: string;
     finalPrompt: string;
     variables: string;
     example: string;
@@ -194,6 +195,9 @@ export interface I18nDict {
     generationSucceededNoImage: string;
     youLabel: string;
     aiBotLabel: string;
+    makePrivate: string;
+    makePublic: string;
+    privateLabel: string;
     templateIntro: string;
     templateIntroTail: string;
     promptModeVariables: string;
@@ -469,6 +473,7 @@ const EN: I18nDict = {
     author: "Author",
     sourceUrl: "Source URL",
     promptTemplate: "Prompt Template",
+    gallery: "Gallery",
     finalPrompt: "Final Prompt",
     variables: "Variables",
     example: "Example",
@@ -510,6 +515,9 @@ const EN: I18nDict = {
     generationSucceededNoImage: "Generation succeeded, but no displayable image was returned",
     youLabel: "You",
     aiBotLabel: "AI Image Bot",
+    makePrivate: "Make Private",
+    makePublic: "Make Public",
+    privateLabel: "Private",
     templateIntro: "You are using \"{title}\". Here are {count} sample images to quickly understand style, composition, and lighting.",
     templateIntroTail: "Review them first, then fill variables on the left and generate.",
     promptModeVariables: "Variables",
@@ -798,6 +806,7 @@ const ZH: I18nDict = {
     author: "作者",
     sourceUrl: "来源链接",
     promptTemplate: "Prompt 模板",
+    gallery: "画廊",
     finalPrompt: "最终 Prompt",
     variables: "变量",
     example: "示例",
@@ -839,6 +848,9 @@ const ZH: I18nDict = {
     generationSucceededNoImage: "生成成功，但未返回可展示图片",
     youLabel: "你",
     aiBotLabel: "AI Image Bot",
+    makePrivate: "设为私有",
+    makePublic: "设为公开",
+    privateLabel: "私有",
     templateIntro: "你当前使用的是「{title}」模板。下面是该模板的 {count} 张样例图，可快速了解风格、构图和光影。",
     templateIntroTail: "你可以先看样例，再在左侧填写变量并生成。",
     promptModeVariables: "变量填写",
