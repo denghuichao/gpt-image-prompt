@@ -55,38 +55,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   try {
-    const slug = String(req.query.slug || "").trim();
-    if (!slug) {
+    const rawSlug = String(req.query.slug || "").trim();
+    const decodedSlug = (() => {
+      if (!rawSlug) return "";
+      try {
+        return decodeURIComponent(rawSlug);
+      } catch {
+        return rawSlug;
+      }
+    })();
+    if (!decodedSlug) {
       return res.status(400).json({ items: [], nextCursor: null, hasMore: false, error: "slug is required" });
     }
+    const slugCandidates = Array.from(new Set([rawSlug, decodedSlug].filter(Boolean)));
 
     const cursor = parseCursor(req.query.cursor);
     const limit = parseLimit(req.query.limit);
 
-    const template = await getPromptTemplateBySlug(slug);
-    if (!template) {
-      return res.status(404).json({ items: [], nextCursor: null, hasMore: false, error: "template not found" });
+    let template = await getPromptTemplateBySlug(decodedSlug);
+    if (!template && rawSlug && rawSlug !== decodedSlug) {
+      template = await getPromptTemplateBySlug(rawSlug);
     }
 
     const merged: GalleryItem[] = [];
     const seen = new Set<string>();
 
-    for (let i = 0; i < template.images.length; i += 1) {
-      const url = String(template.images[i] || "").trim();
-      if (!url || seen.has(url)) continue;
-      seen.add(url);
-      merged.push({
-        id: `sample-${slug}-${i}`,
-        url,
-        source: "sample",
-        createdAt: new Date(0).toISOString(),
-      });
+    if (template) {
+      for (let i = 0; i < template.images.length; i += 1) {
+        const url = String(template.images[i] || "").trim();
+        if (!url || seen.has(url)) continue;
+        seen.add(url);
+        merged.push({
+          id: `sample-${template.slug}-${i}`,
+          url,
+          source: "sample",
+          createdAt: new Date(0).toISOString(),
+        });
+      }
     }
 
     const { data, error } = await supabaseAdmin
       .from("conversations")
       .select("user_id,messages,updated_at")
-      .eq("template_key", slug)
+      .in("template_key", slugCandidates)
       .order("updated_at", { ascending: false })
       .limit(500);
 

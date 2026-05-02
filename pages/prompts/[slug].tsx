@@ -205,7 +205,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
           <button
             type="button"
             onClick={() => setShowTemplateGallery(true)}
-            className="absolute right-2 top-2 z-[800] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800"
+            className="fixed right-3 top-20 z-[1200] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800 sm:right-5 sm:top-24"
             aria-label="Browse template gallery"
             title="Browse gallery"
           >
@@ -215,7 +215,7 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
           <button
             type="button"
             onClick={() => setShowTemplateGallery(false)}
-            className="absolute right-2 top-2 z-[800] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800"
+            className="fixed right-3 top-20 z-[1200] inline-flex h-10 w-10 items-center justify-center rounded-full border border-night-600 bg-night-900/85 text-night-100 shadow-lg backdrop-blur transition hover:border-night-400 hover:bg-night-800 sm:right-5 sm:top-24"
             aria-label="Close template gallery"
             title="Close gallery"
           >
@@ -337,9 +337,6 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                       loading="lazy"
                       className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-90"
                     />
-                    <span className="absolute bottom-2 left-2 rounded-full border border-night-600/70 bg-night-900/80 px-2 py-0.5 font-mono text-[10px] text-night-200">
-                      {item.source === "sample" ? "Sample" : "Generated"}
-                    </span>
                   </figure>
                 ))}
               </div>
@@ -367,9 +364,6 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                       className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-night-950/85 to-transparent" />
-                    <span className="absolute bottom-2 left-2 rounded-full border border-night-600/70 bg-night-900/80 px-2 py-0.5 font-mono text-[10px] text-night-200">
-                      {item.source === "sample" ? "Sample" : "Generated"}
-                    </span>
                   </button>
                 </article>
               ))}
