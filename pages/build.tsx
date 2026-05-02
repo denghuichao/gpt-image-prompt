@@ -928,7 +928,11 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                           </div>
                         )}
 
-                        {msg.role === "assistant" && msg.images && msg.images.length > 0 && !msg.loading && (
+                        {msg.role === "assistant"
+                          && msg.images
+                          && msg.images.length > 0
+                          && !msg.loading
+                          && !msg.id.startsWith("assistant-template-intro-") && (
                           <div className="mt-2">
                             {(typeof msg.is_private === "boolean"
                               ? msg.is_private
