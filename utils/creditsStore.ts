@@ -33,6 +33,12 @@ type PurchaseOrderRow = {
 
 export type PurchaseOrder = PurchaseOrderRow;
 
+function resolveSignupFreeCredits(): number {
+  const raw = Number(process.env.FREE_SIGNUP_CREDITS ?? "3");
+  if (!Number.isFinite(raw)) return 3;
+  return Math.max(0, Math.floor(raw));
+}
+
 async function ensureUser(userId: string) {
   const { data, error } = await supabaseAdmin
     .from("user_credits")
@@ -44,11 +50,12 @@ async function ensureUser(userId: string) {
   if (data) return;
 
   const now = new Date().toISOString();
+  const signupCredits = resolveSignupFreeCredits();
   const { error: insertError } = await supabaseAdmin
     .from("user_credits")
     .insert({
       user_id: userId,
-      balance: 0,
+      balance: signupCredits,
       total_bought: 0,
       total_used: 0,
       created_at: now,
