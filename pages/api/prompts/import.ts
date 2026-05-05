@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { isAdminRequest } from "../../../utils/admin";
 import { clearPromptPageCache } from "../../../utils/promptPageCache";
-import { upsertPromptTemplate, type PromptTemplate, type PromptVariable } from "../../../utils/promptTemplates";
+import { upsertPromptTemplate, type PromptTemplate, type PromptTemplateEditMode, type PromptVariable } from "../../../utils/promptTemplates";
 import { supabaseAdmin, SUPABASE_PROMPT_IMAGES_BUCKET } from "../../../utils/supabase";
 
 export const config = {
@@ -24,11 +24,36 @@ type ImportTemplateItem = {
   style?: string;
   final_prompt?: string;
   variables?: PromptVariable[];
+  edit_mode?: PromptTemplateEditMode;
 };
 
 type ImportBody = {
   templates?: ImportTemplateItem[];
 };
+
+function buildItemLogContext(item: ImportTemplateItem, index: number) {
+  const imageList = [
+    ...(Array.isArray(item.images) ? item.images : []),
+    ...(Array.isArray(item.image_urls) ? item.image_urls : []),
+  ]
+    .map((s) => String(s || "").trim())
+    .filter(Boolean);
+
+  const dataUrlCount = imageList.filter((src) => src.startsWith("data:image/")).length;
+  const httpUrlCount = imageList.filter((src) => /^https?:\/\//i.test(src)).length;
+  const localPathCount = imageList.filter((src) => src.startsWith("/")).length;
+
+  return {
+    index,
+    slug: item.slug?.trim() || "",
+    title: item.title?.trim() || "",
+    tags_count: Array.isArray(item.tags) ? item.tags.length : 0,
+    images_count: imageList.length,
+    data_url_count: dataUrlCount,
+    http_url_count: httpUrlCount,
+    local_path_count: localPathCount,
+  };
+}
 
 function slugify(input: string) {
   return input
@@ -181,10 +206,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "templates array is required" });
     }
 
+    const importStartedAt = Date.now();
+    const requestMeta = {
+      method: req.method,
+      user_agent: req.headers["user-agent"] || "",
+      templates_count: templates.length,
+    };
+    // eslint-disable-next-line no-console
+    console.log("[/api/prompts/import] import start", JSON.stringify(requestMeta));
+
     const result: Array<{ slug: string; ok: boolean; error?: string }> = [];
 
     for (let i = 0; i < templates.length; i += 1) {
       const item = templates[i];
+      const itemContext = buildItemLogContext(item, i);
+      // eslint-disable-next-line no-console
+      console.log("[/api/prompts/import] item start", JSON.stringify(itemContext));
       try {
         validateTemplate(item);
         const baseSlug = item.slug?.trim() || slugify(item.title) || `template-${Date.now()}-${i}`;
@@ -204,12 +241,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           final_prompt: item.final_prompt?.trim() || undefined,
           variables: Array.isArray(item.variables) ? item.variables : [],
           default_model: "gpt-image-2",
+          edit_mode: item.edit_mode || "both",
         };
 
         await upsertPromptTemplate(payload);
+        // eslint-disable-next-line no-console
+        console.log("[/api/prompts/import] item success", JSON.stringify({
+          ...itemContext,
+          resolved_slug: slug,
+          uploaded_images_count: images.length,
+        }));
         result.push({ slug, ok: true });
       } catch (err) {
         const message = err instanceof Error ? err.message : "unknown error";
+        const stack = err instanceof Error ? err.stack : undefined;
+        // eslint-disable-next-line no-console
+        console.error("[/api/prompts/import] item failed", JSON.stringify({
+          ...itemContext,
+          error: message,
+          stack_preview: stack ? stack.split("\n").slice(0, 3).join(" | ") : undefined,
+        }));
         result.push({ slug: item.slug || item.title || `row-${i}`, ok: false, error: message });
       }
     }
@@ -218,6 +269,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const successCount = result.filter((r) => r.ok).length;
     const failedCount = result.length - successCount;
+    // eslint-disable-next-line no-console
+    console.log("[/api/prompts/import] import done", JSON.stringify({
+      total: result.length,
+      successCount,
+      failedCount,
+      duration_ms: Date.now() - importStartedAt,
+    }));
 
     return res.status(200).json({
       ok: failedCount === 0,
@@ -227,6 +285,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       result,
     });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : "Import failed" });
+    const message = err instanceof Error ? err.message : "Import failed";
+    const stack = err instanceof Error ? err.stack : undefined;
+    // eslint-disable-next-line no-console
+    console.error("[/api/prompts/import] fatal error", JSON.stringify({
+      error: message,
+      stack_preview: stack ? stack.split("\n").slice(0, 5).join(" | ") : undefined,
+    }));
+    return res.status(500).json({ error: message });
   }
 }

@@ -188,10 +188,12 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
     [activeTemplate?.prompt_template],
   );
   const isJsonTemplate = Boolean(jsonPromptTemplate) || isInvalidJsonLikeTemplate;
+  const isDirectOnlyTemplate = activeTemplate?.edit_mode === "direct_only";
+  const forceDirectMode = isJsonTemplate || isDirectOnlyTemplate;
   const templateKey = isTemplateMode ? activeTemplate?.slug || templateSlug : "default";
   const variableDefs = useMemo(
-    () => (isJsonTemplate ? [] : extractVariableDefs(activeTemplate)),
-    [activeTemplate, isJsonTemplate],
+    () => (forceDirectMode ? [] : extractVariableDefs(activeTemplate)),
+    [activeTemplate, forceDirectMode],
   );
 
   const [variableValues, setVariableValues]         = useState<Record<string, string>>({});
@@ -220,13 +222,13 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
   useEffect(() => {
     if (!isTemplateMode || !activeTemplate) return;
     const nextValues: Record<string, string> = {};
-    for (const v of (isJsonTemplate ? [] : extractVariableDefs(activeTemplate))) nextValues[v.key] = v.example || "";
+    for (const v of (forceDirectMode ? [] : extractVariableDefs(activeTemplate))) nextValues[v.key] = v.example || "";
     setVariableValues(nextValues);
-    setDirectPrompt(isJsonTemplate ? (jsonPromptTemplate || activeTemplate.prompt_template) : fillPrompt(activeTemplate.prompt_template, nextValues));
-    setPromptEditMode(isJsonTemplate ? "direct" : "variables");
+    setDirectPrompt(forceDirectMode ? (jsonPromptTemplate || activeTemplate.prompt_template) : fillPrompt(activeTemplate.prompt_template, nextValues));
+    setPromptEditMode(forceDirectMode ? "direct" : "variables");
     setReferenceImages([]);
     setActiveReferencePreview("");
-  }, [activeTemplate, isTemplateMode, isJsonTemplate, jsonPromptTemplate]);
+  }, [activeTemplate, isTemplateMode, forceDirectMode, jsonPromptTemplate]);
 
   useLayoutEffect(() => {
     const textarea = directPromptEditorRef.current;
@@ -649,7 +651,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                     </div>
 
                     {/* Prompt template display (variables mode only) */}
-                    {promptEditMode === "variables" && (
+                    {!forceDirectMode && promptEditMode === "variables" && (
                       <div className="mb-4 rounded-xl border border-night-700 bg-night-950/60 p-3">
                         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-night-500">
                           {dict.build.promptTemplate}
@@ -660,7 +662,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                       </div>
                     )}
 
-                    {isJsonTemplate ? (
+                    {forceDirectMode ? (
                       <div className="mb-3 inline-flex rounded-xl border border-night-700 bg-night-900/70 p-1">
                         <span className="rounded-lg bg-night-700 px-3 py-1.5 text-xs text-night-50">
                           {dict.build.promptModeDirect}
@@ -689,7 +691,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                     )}
 
                     {/* Variable inputs / direct prompt editor */}
-                    {promptEditMode === "variables" ? (
+                    {!forceDirectMode && promptEditMode === "variables" ? (
                       <div className="mb-4 space-y-3">
                         {variableDefs.map((v) => (
                           <div key={v.key}>

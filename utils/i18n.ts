@@ -216,6 +216,9 @@ export interface I18nDict {
     importHint: string;
     importing: string;
     importButton: string;
+    editModeLabel: string;
+    editModeBoth: string;
+    editModeDirectOnly: string;
     invalidJson: string;
     importDonePrefix: string;
     importDoneMiddle: string;
@@ -536,6 +539,9 @@ const EN: I18nDict = {
     importHint: "Upload one .json file (array or { templates: [...] })",
     importing: "Importing...",
     importButton: "Import JSON",
+    editModeLabel: "Edit Mode",
+    editModeBoth: "Variables + Direct",
+    editModeDirectOnly: "Direct Only",
     invalidJson: "Invalid JSON file",
     importDonePrefix: "Import done: ",
     importDoneMiddle: " success, ",
@@ -869,6 +875,9 @@ const ZH: I18nDict = {
     importHint: "上传一个 .json 文件（数组或 { templates: [...] }）",
     importing: "导入中...",
     importButton: "导入 JSON",
+    editModeLabel: "编辑模式",
+    editModeBoth: "变量填写 + 直接编辑",
+    editModeDirectOnly: "仅直接编辑",
     invalidJson: "JSON 文件格式错误",
     importDonePrefix: "导入完成：成功 ",
     importDoneMiddle: " 条，失败 ",

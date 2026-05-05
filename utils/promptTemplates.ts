@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "./supabase";
 
 export type ImageModel = "gpt-image-2";
+export type PromptTemplateEditMode = "both" | "direct_only";
 
 export interface PromptVariable {
   key: string;
@@ -20,6 +21,7 @@ export interface PromptTemplateRaw {
   final_prompt?: string;
   variables?: PromptVariable[];
   default_model?: ImageModel;
+  edit_mode?: PromptTemplateEditMode;
 }
 
 export interface PromptTemplate extends PromptTemplateRaw {
@@ -50,6 +52,7 @@ type PromptTemplateRow = {
   final_prompt: string | null;
   variables: PromptVariable[] | null;
   default_model: ImageModel | null;
+  edit_mode: PromptTemplateEditMode | null;
   created_at: string;
   updated_at: string;
 };
@@ -66,6 +69,7 @@ function normalizeRow(row: PromptTemplateRow): PromptTemplate {
     source_url: row.source_url,
     variables: Array.isArray(row.variables) ? row.variables : [],
     default_model: row.default_model || "gpt-image-2",
+    edit_mode: row.edit_mode || "both",
   };
 
   if (row.style) normalized.style = row.style;
@@ -77,7 +81,7 @@ function normalizeRow(row: PromptTemplateRow): PromptTemplate {
 export async function getPromptTemplates(): Promise<PromptTemplate[]> {
   const { data, error } = await supabaseAdmin
     .from("prompt_templates")
-    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,created_at,updated_at")
+    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,edit_mode,created_at,updated_at")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -122,7 +126,7 @@ export async function getPromptTemplatesPage(input: {
 
   let query = supabaseAdmin
     .from("prompt_templates")
-    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,created_at,updated_at")
+    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,edit_mode,created_at,updated_at")
     .order("created_at", { ascending: false });
 
   if (q) {
@@ -208,7 +212,7 @@ export async function getPromptTemplateFacets(): Promise<PromptTemplateFacets> {
 export async function getPromptTemplateBySlug(slug: string): Promise<PromptTemplate | undefined> {
   const { data, error } = await supabaseAdmin
     .from("prompt_templates")
-    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,created_at,updated_at")
+    .select("slug,title,description,prompt_template,images,tags,author,source_url,style,final_prompt,variables,default_model,edit_mode,created_at,updated_at")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -234,6 +238,7 @@ export async function upsertPromptTemplate(input: PromptTemplate) {
     final_prompt: input.final_prompt || null,
     variables: input.variables || [],
     default_model: "gpt-image-2",
+    ...(input.edit_mode ? { edit_mode: input.edit_mode } : {}),
     updated_at: new Date().toISOString(),
   };
 

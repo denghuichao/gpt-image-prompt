@@ -4,10 +4,22 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { resolveLocale, t } from "../../utils/i18n";
+import type { PromptTemplateEditMode } from "../../utils/promptTemplates";
 
 type VariableInput = { key: string; description: string; example: string };
 
 const inputClass = "w-full rounded-xl border border-night-700 bg-night-950/60 px-3 py-2 text-sm text-night-100 outline-none transition placeholder:text-night-600 focus:border-glow-500/50 focus:shadow-[0_0_0_3px_rgba(251,191,36,0.06)]";
+
+async function readApiResponse(res: Response): Promise<{ data: Record<string, unknown>; raw: string }> {
+  const raw = await res.text();
+  if (!raw) return { data: {}, raw: "" };
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return { data: parsed, raw };
+  } catch {
+    return { data: {}, raw };
+  }
+}
 
 const NewPromptPage: NextPage = () => {
   const router = useRouter();
@@ -20,6 +32,7 @@ const NewPromptPage: NextPage = () => {
   const [desc, setDesc] = useState("");
   const [promptTemplate, setPromptTemplate] = useState("");
   const [style, setStyle] = useState("");
+  const [editMode, setEditMode] = useState<PromptTemplateEditMode>("both");
   const [author, setAuthor] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [tagsText, setTagsText] = useState("");
@@ -98,6 +111,7 @@ const NewPromptPage: NextPage = () => {
         author,
         source_url: sourceUrl,
         style,
+        edit_mode: editMode,
         final_prompt: finalPrompt,
         variables: variables.filter((v) => v.key.trim()).map((v) => ({
           key: v.key.trim(),
@@ -116,12 +130,15 @@ const NewPromptPage: NextPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+      const { data, raw } = await readApiResponse(res);
+      const errorMsg = typeof data.error === "string"
+        ? data.error
+        : (raw || `HTTP ${res.status}`);
       if (!res.ok || data.error) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+        throw new Error(errorMsg);
       }
       setOk(pageText.success);
-      if (data.slug) {
+      if (typeof data.slug === "string" && data.slug) {
         setTimeout(() => {
           void router.push(`/prompts/${data.slug}`);
         }, 800);
@@ -152,9 +169,12 @@ const NewPromptPage: NextPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed),
       });
-      const data = await res.json();
+      const { data, raw } = await readApiResponse(res);
+      const errorMsg = typeof data.error === "string"
+        ? data.error
+        : (raw || `HTTP ${res.status}`);
       if (!res.ok || data.error) {
-        throw new Error(data.error || `HTTP ${res.status}`);
+        throw new Error(errorMsg);
       }
 
       const successCount = Number(data.successCount ?? 0);
@@ -200,6 +220,13 @@ const NewPromptPage: NextPage = () => {
             <div>
               <label className="mb-1 block text-xs text-night-400">Style</label>
               <input value={style} onChange={(e) => setStyle(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-night-400">{pageText.editModeLabel}</label>
+              <select value={editMode} onChange={(e) => setEditMode(e.target.value as PromptTemplateEditMode)} className={inputClass}>
+                <option value="both">{pageText.editModeBoth}</option>
+                <option value="direct_only">{pageText.editModeDirectOnly}</option>
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs text-night-400">Tags (comma)</label>

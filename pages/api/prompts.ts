@@ -9,6 +9,11 @@ import { supabaseAdmin, SUPABASE_PROMPT_IMAGES_BUCKET } from "../../utils/supaba
 import { isAdminRequest } from "../../utils/admin";
 import { clearPromptPageCache, getPromptPageCache, setPromptPageCache } from "../../utils/promptPageCache";
 import { resolveRequestUserId } from "../../utils/requestAuth";
+import type { PromptTemplateEditMode } from "../../utils/promptTemplates";
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "20mb" } },
+};
 
 function slugify(input: string) {
   return input
@@ -44,6 +49,7 @@ type CreatePromptBody = {
   variables?: PromptVariable[];
   imagesBase64?: string[];
   imageUrls?: string[];
+  edit_mode?: PromptTemplateEditMode;
 };
 
 async function uploadTemplateImage(base64: string, slug: string, idx: number) {
@@ -181,6 +187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         style: body.style?.trim() || undefined,
         final_prompt: body.final_prompt?.trim() || undefined,
         variables: Array.isArray(body.variables) ? body.variables : [],
+        edit_mode: body.edit_mode || "both",
         default_model: "gpt-image-2",
       });
       clearPromptPageCache();
