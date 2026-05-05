@@ -1,8 +1,11 @@
 {
   "private": true,
   "scripts": {
+    "predev": "node scripts/generate_sitemap.js",
     "dev": "next dev",
+    "prebuild": "node scripts/generate_sitemap.js",
     "build": "next build",
+    "prestart": "node scripts/generate_sitemap.js",
     "start": "next start",
     "lint": "next lint"
   },
