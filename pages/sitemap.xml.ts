@@ -33,7 +33,6 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   for (const item of templates) {
     const path = `/prompts/${item.slug}`;
     entries.push(buildUrl(`${siteUrl}${localePath(path, "zh")}`));
-    entries.push(buildUrl(`${siteUrl}${localePath(path, "en")}`));
   }
 
   const posts = getAllPublishedBlogPosts();
