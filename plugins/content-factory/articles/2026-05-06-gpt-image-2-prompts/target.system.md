@@ -15,7 +15,7 @@ GPT-Image-2 全量开放后，X 时间线里高质量案例明显变多。这里
 - 可视化展示和检索：`https://gptimageprompt.xyz/gallery`
 
 
-![2046669706585686016](/blog_images/2046669706585686016.jpg)
+![61.png](/blog_images/61.png)
 
 ```text
 生成一张Grok的小红书界面个人主页截图

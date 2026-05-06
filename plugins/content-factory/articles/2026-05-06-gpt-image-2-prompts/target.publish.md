@@ -1,21 +1,27 @@
 # GPT-Image-2 全网高赞案例实录：完整提示词 + 复用模板 + 沉淀体系
 
-GPT-Image-2 全量开放后，X 时间线里高质量案例明显变多。这里把近期高赞内容做了一次集中清洗，方便直接复制实测。
+GPT-Image-2 全量开放后，X 时间线里高质量案例明显变多。这里把近期高赞内容做了一次集中清洗，方便直接参考、复用。
 
 从可控性和细节表现看，这一代模型把图像生成的上限继续往前推了一步。
 
-如果你想长期沉淀这类高质量模板，建议配合这两个开源项目一起使用：
+如果你想长期沉淀这类高质量模板，这里两个两个开源项目可以一起使用：
 
 - 模板与数据集：`https://github.com/denghuichao/gpt-image-2-prompts`
-- 采集插件：`https://github.com/denghuichao/x-capture`
+> Prompt as Code | GPT-Image2 工业级提示词引擎与模板库，80 套工业级模板，4000+ 推特等媒体平台流行提示词，持续更新中
 
-![2046669706585686016](https://gptimageprompt.xyz/blog_images/2046669706585686016.jpg)
+- 采集插件：`https://github.com/denghuichao/x-capture`
+> 一个浏览器插件，支持一键采集x上面推友们分享的高质量提示词，并通过AI生成可服用，可管理的json结构
+
+- 可视化展示和检索：`https://gptimageprompt.xyz/gallery`
+
+
+![61.png](https://gptimageprompt.xyz/blog_images/61.png)
 
 ```text
 生成一张Grok的小红书界面个人主页截图
 ```
 
-下面按原帖结构整理 8 类可复用案例，均附完3整 prompt，可直接在 ChatGPT（GPT-Image-2）里复现。
+下面抽取上述仓库中其中8类可复用案例，均附完整 prompt，可直接在 ChatGPT（GPT-Image-2）里复现。
 
 ## 〇、先来收集点整活的内容：
 
