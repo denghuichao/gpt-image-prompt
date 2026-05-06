@@ -1,6 +1,6 @@
 ---
 title: "GPT-Image-2 全网高赞案例实录：完整提示词 + 复用模板 + 沉淀体系"
-excerpt: "基于 X 高赞长文整理的 GPT-Image-2 实战合集，覆盖人像、海报、分镜、建筑等场景，附可直接复制的完整 Prompt。"
+excerpt: "收集X最近流行的AI绘图提示词整理而成的 GPT-Image-2 实战合集，覆盖人像、海报、分镜、建筑等场景，附可直接复制的完整 Prompt。"
 date: "2026-05-06"
 tags:
   - GPT-Image-2
