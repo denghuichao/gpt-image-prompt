@@ -56,13 +56,12 @@ GPT-Image-2 全量开放后，X 时间线里高质量案例明显变多。这里
 
 这周 X 上被反复转发最多的，是这个仓库：
 
-🔗 awesome-gpt-image-2-prompts
- github.com/EvoLinkAI/awesome-gpt-image-2-prompts
+🔗 https://github.com/denghuichao/gpt-image-2-prompts
 
-500+ Star 的量级，覆盖人像摄影、海报、角色设计、UI mockup 四个大类，每类都带图和完整 prompt。X 上绝大多数刷屏帖的 prompt，都能在里面找到原始出处或同款。
+这是一个提示词数据库，所有提示词都沉淀为结构化的json，方便第三方系统直接集成、使用。覆盖人像摄影、海报、角色设计、UI mockup 等80个类目，每类都带图和完整 prompt。X 上绝大多数刷屏帖的 prompt，都能在里面找到原始出处或同款。
 
-另外有两个中文友好库也可以收藏：
-
+另外有几个中文友好库也可以收藏：
+- github.com/EvoLinkAI/awesome-gpt-image-2-prompts
 - github.com/YouMind-OpenLab/awesome-gpt-image-2
 - opennana.com/awesome-prompt-gallery?model=ChatGPT
 
