@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>X Prompt Capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>X Prompt Capture</h1>
+      <p class="hint">Hover or click a thread, then capture and export a prompt JSON.</p>
+
+      <div class="meta">
+        <div>Day: <strong id="dayKey">-</strong></div>
+        <div>Captured today: <strong id="count">0</strong></div>
+        <div>Export dir: <code id="dir">-</code></div>
+      </div>
+
+      <button id="captureBtn" class="btn primary">
+        <span id="captureSpinner" class="btn-spinner hidden" aria-hidden="true"></span>
+        <span id="captureLabel">Capture Tweet</span>
+      </button>
+      <button id="exportBtn" class="btn">Export Today's JSON</button>
+      <button id="openDirBtn" class="btn">Open Json Dictory</button>
+      <button id="settingsBtn" class="btn ghost">Settings</button>
+
+      <pre id="status" class="status"></pre>
+    </main>
+
+    <div id="jsonModal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2>Structured Prompt JSON</h2>
+          <button id="closeModalBtn" class="close-btn" aria-label="Close">×</button>
+        </div>
+        <pre id="jsonPreview" class="json-preview"></pre>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

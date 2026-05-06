@@ -1,0 +1,39 @@
+{
+  "name": "x-prompt-capture",
+  "version": "1.0.0",
+  "description": "Capture prompt tweets from X/Twitter and export deduplicated daily JSON for AI Image Prompt Gallery import.",
+  "author": {
+    "name": "Deng Huichao",
+    "email": "denghuichao90@gmail.com",
+    "url": "https://github.com/denghuichao"
+  },
+  "homepage": "https://gptimageprompt.xyz",
+  "repository": "https://github.com/denghuichao/gpt-image-2-prompts",
+  "license": "MIT",
+  "keywords": [
+    "chrome-extension",
+    "prompt-capture",
+    "twitter",
+    "x"
+  ],
+  "interface": {
+    "displayName": "X Prompt Capture",
+    "shortDescription": "One-click capture of X prompt tweets to importable JSON.",
+    "longDescription": "Extract prompt tweets from X/Twitter, format them for AI Image Prompt Gallery import, and export to daily deduplicated JSON files.",
+    "developerName": "Deng Huichao",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://gptimageprompt.xyz",
+    "privacyPolicyURL": "https://gptimageprompt.xyz/privacy",
+    "termsOfServiceURL": "https://gptimageprompt.xyz/terms",
+    "defaultPrompt": [
+      "Capture this tweet as an importable prompt template JSON.",
+      "Extract prompt text and media URLs from current tweet.",
+      "Export today's deduplicated prompt templates to JSON."
+    ],
+    "brandColor": "#3248d0"
+  }
+}
