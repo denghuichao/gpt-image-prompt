@@ -6,7 +6,7 @@ tags:
   - AI创业
   - Reddit
   - 市场验证
-cover: "/blog_images/20260507-1.jpg"
+cover: "/blog_images/20260507-1.png"
 published: true
 ---
 
