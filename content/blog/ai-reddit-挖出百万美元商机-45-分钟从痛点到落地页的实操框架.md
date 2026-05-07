@@ -365,7 +365,7 @@ Prioritize practical, implementable ideas over theoretical concepts
 
 它还会自动适配 Lovable 这类 AI 低代码工具的最佳实践，尽量让你生成出来的页面更像“能用的页面”，而不是“一个看起来像页面的草稿”。
 
-所以这一步基本就是：从 Claude 复制提示词，贴到 Lovable（或者 V0 这类编辑器）里跑，或者直接喂给codex或者claude code。
+所以这一步基本就是：从 Claude 复制提示词，贴到 Lovable（或者 V0 这类vibe coding产品）里跑，或者直接喂给codex或者claude code。
 
 ![20260507-5.jpg](/blog_images/20260507-5.jpg)
 
