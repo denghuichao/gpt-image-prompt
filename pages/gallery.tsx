@@ -5,8 +5,9 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProgressiveMediaCard from "../components/ProgressiveMediaCard";
 import { resolveLocale, t } from "../utils/i18n";
-import { getPromptTemplatesPage, type PromptTemplate } from "../utils/promptTemplates";
+import { getPromptTemplateFacets, getPromptTemplatesPage, type PromptTemplate } from "../utils/promptTemplates";
 import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
+import { getStyleGalleryPath, getTagGalleryPath } from "../utils/taxonomy";
 
 const PAGE_SIZE = 24;
 
@@ -30,6 +31,8 @@ type GalleryPageProps = {
   initialNextCursor: number | null;
   initialHasMore: boolean;
   isFiltered: boolean;
+  facetStyles: string[];
+  facetTags: string[];
 };
 
 function TemplateCardImage({
@@ -87,6 +90,8 @@ const GalleryPage: NextPage<GalleryPageProps> = ({
   initialNextCursor,
   initialHasMore,
   isFiltered,
+  facetStyles,
+  facetTags,
 }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
@@ -222,6 +227,45 @@ const GalleryPage: NextPage<GalleryPageProps> = ({
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-3 py-6 sm:px-5 lg:px-6">
+        {!isFiltered && (
+          <section className="mb-8 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-night-700 bg-night-900/55 p-4">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                {locale === "en" ? "Browse by style" : "按风格浏览"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {facetStyles.slice(0, 12).map((style) => (
+                  <Link
+                    key={style}
+                    href={getStyleGalleryPath(style)}
+                    locale={locale}
+                    className="rounded-full border border-night-700 bg-night-950/60 px-3 py-1.5 text-xs text-night-200 transition hover:border-glow-500/35 hover:text-glow-200"
+                  >
+                    {style}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-night-700 bg-night-900/55 p-4">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-night-500">
+                {locale === "en" ? "Browse by tag" : "按标签浏览"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {facetTags.slice(0, 12).map((tag) => (
+                  <Link
+                    key={tag}
+                    href={getTagGalleryPath(tag)}
+                    locale={locale}
+                    className="rounded-full border border-night-700 bg-night-950/60 px-3 py-1.5 text-xs text-night-200 transition hover:border-glow-500/35 hover:text-glow-200"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {noResults ? (
           <section className="py-20 text-center">
             <p className="font-display text-xl italic text-night-400">
@@ -314,6 +358,7 @@ export const getServerSideProps: GetServerSideProps<GalleryPageProps> = async (c
   const query = typeof context.query.q === "string" ? context.query.q : "";
   const typeFilter = typeof context.query.type === "string" ? context.query.type : "";
   const tagFilters = parseCsvParam(context.query.tags);
+  const facets = await getPromptTemplateFacets();
   const initialPage = await getPromptTemplatesPage({
     cursor: 0,
     limit: PAGE_SIZE,
@@ -328,6 +373,8 @@ export const getServerSideProps: GetServerSideProps<GalleryPageProps> = async (c
       initialNextCursor: initialPage.nextCursor,
       initialHasMore: initialPage.hasMore,
       isFiltered: Boolean(query.trim() || typeFilter.trim() || tagFilters.length > 0),
+      facetStyles: facets.styles,
+      facetTags: facets.tags,
     },
   };
 };

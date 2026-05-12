@@ -16,6 +16,7 @@ import {
   type PromptTemplate,
 } from "../../utils/promptTemplates";
 import { absoluteUrl, safeJsonLd } from "../../utils/seo";
+import { getStyleGalleryPath, getTagGalleryPath } from "../../utils/taxonomy";
 
 function normalizePromptText(input: string) {
   return String(input || "")
@@ -227,9 +228,19 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <section className="flex flex-col gap-6 rounded-2xl border border-night-700/55 bg-night-900/45 p-5 shadow-sm backdrop-blur-sm sm:p-6">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
-                  {template.style || dict.common.uncategorized}
-                </p>
+                {template.style ? (
+                  <Link
+                    href={getStyleGalleryPath(template.style)}
+                    locale={locale}
+                    className="font-mono text-[10px] uppercase tracking-[0.18em] text-glow-400 transition hover:text-glow-300"
+                  >
+                    {template.style}
+                  </Link>
+                ) : (
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-night-500">
+                    {dict.common.uncategorized}
+                  </p>
+                )}
                 <h1 className="mt-2 font-display text-3xl font-semibold italic leading-tight text-night-50 sm:text-4xl">
                   {template.title}
                 </h1>
@@ -240,12 +251,14 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {template.tags.map((tag) => (
-                    <span
+                    <Link
                       key={`${template.slug}-${tag}`}
-                      className="rounded-full border border-night-700/60 bg-night-900/60 px-2.5 py-0.5 font-mono text-[10px] text-night-400"
+                      href={getTagGalleryPath(tag)}
+                      locale={locale}
+                      className="rounded-full border border-night-700/60 bg-night-900/60 px-2.5 py-0.5 font-mono text-[10px] text-night-400 transition hover:border-glow-500/35 hover:text-glow-200"
                     >
                       #{tag}
-                    </span>
+                    </Link>
                   ))}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 border-t border-night-800 pt-4">

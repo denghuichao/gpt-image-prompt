@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { supabaseAdmin } from "./supabase";
 
 export type ImageModel = "gpt-image-2";
@@ -57,6 +59,8 @@ type PromptTemplateRow = {
   updated_at: string;
 };
 
+let localTemplatesCache: PromptTemplate[] | null = null;
+
 function normalizeRow(row: PromptTemplateRow): PromptTemplate {
   const normalized: PromptTemplate = {
     slug: row.slug,
@@ -78,6 +82,74 @@ function normalizeRow(row: PromptTemplateRow): PromptTemplate {
   return normalized;
 }
 
+function readLocalPromptTemplates(): PromptTemplate[] {
+  if (localTemplatesCache) return localTemplatesCache;
+  const filePath = path.join(process.cwd(), "trending-prompts.importable.json");
+  if (!fs.existsSync(filePath)) return [];
+
+  try {
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed = JSON.parse(raw) as { templates?: PromptTemplate[] };
+    const templates = Array.isArray(parsed.templates) ? parsed.templates : [];
+    localTemplatesCache = templates.map((template) => ({
+      slug: String(template.slug || "").trim(),
+      title: String(template.title || "").trim(),
+      desc: String(template.desc || ""),
+      prompt_template: String(template.prompt_template || ""),
+      images: Array.isArray(template.images) ? template.images.map((item) => String(item || "").trim()).filter(Boolean) : [],
+      tags: Array.isArray(template.tags) ? template.tags.map((item) => String(item || "").trim()).filter(Boolean) : [],
+      author: String(template.author || "").trim(),
+      source_url: String(template.source_url || "").trim(),
+      variables: Array.isArray(template.variables) ? template.variables : [],
+      default_model: template.default_model || "gpt-image-2",
+      edit_mode: template.edit_mode || "both",
+      ...(template.style ? { style: String(template.style).trim() } : {}),
+      ...(template.final_prompt ? { final_prompt: String(template.final_prompt) } : {}),
+    })).filter((template) => template.slug);
+    return localTemplatesCache;
+  } catch {
+    return [];
+  }
+}
+
+function filterLocalTemplates(input: {
+  q?: string;
+  style?: string;
+  tags?: string[];
+  tagsMode?: "or" | "and";
+}) {
+  const q = sanitizeLikeQuery(input.q || "").toLowerCase();
+  const style = String(input.style || "").trim().toLowerCase();
+  const tags = Array.isArray(input.tags)
+    ? input.tags.map((tag) => String(tag || "").trim().toLowerCase()).filter(Boolean)
+    : [];
+  const tagsMode = input.tagsMode === "and" ? "and" : "or";
+
+  return readLocalPromptTemplates().filter((template) => {
+    if (style && String(template.style || "").trim().toLowerCase() !== style) {
+      return false;
+    }
+
+    if (tags.length > 0) {
+      const candidateTags = template.tags.map((tag) => tag.toLowerCase());
+      const hasTags = tagsMode === "and"
+        ? tags.every((tag) => candidateTags.includes(tag))
+        : tags.some((tag) => candidateTags.includes(tag));
+      if (!hasTags) return false;
+    }
+
+    if (!q) return true;
+    const haystacks = [
+      template.title,
+      template.desc,
+      template.prompt_template,
+      template.final_prompt || "",
+      ...template.tags,
+    ].map((item) => String(item || "").toLowerCase());
+    return haystacks.some((item) => item.includes(q));
+  });
+}
+
 export async function getPromptTemplates(): Promise<PromptTemplate[]> {
   const { data, error } = await supabaseAdmin
     .from("prompt_templates")
@@ -85,6 +157,8 @@ export async function getPromptTemplates(): Promise<PromptTemplate[]> {
     .order("created_at", { ascending: false });
 
   if (error) {
+    const local = readLocalPromptTemplates();
+    if (local.length > 0) return local;
     throw new Error(`Failed to fetch prompt templates: ${error.message}`);
   }
 
@@ -168,7 +242,14 @@ export async function getPromptTemplatesPage(input: {
 
   const { data, error } = await query.range(cursor, cursor + limit);
   if (error) {
-    throw new Error(`Failed to fetch prompt templates page: ${error.message}`);
+    const localRows = filterLocalTemplates({ q, style, tags, tagsMode });
+    const slice = localRows.slice(cursor, cursor + limit);
+    const hasMoreLocal = localRows.length > cursor + limit;
+    return {
+      templates: slice,
+      nextCursor: hasMoreLocal ? cursor + limit : null,
+      hasMore: hasMoreLocal,
+    };
   }
 
   const rows = (data || []) as PromptTemplateRow[];
@@ -187,7 +268,14 @@ export async function getPromptTemplateFacets(): Promise<PromptTemplateFacets> {
     .select("style,tags");
 
   if (error) {
-    throw new Error(`Failed to fetch prompt template facets: ${error.message}`);
+    const local = readLocalPromptTemplates();
+    if (local.length === 0) {
+      throw new Error(`Failed to fetch prompt template facets: ${error.message}`);
+    }
+    return {
+      styles: Array.from(new Set(local.map((template) => String(template.style || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+      tags: Array.from(new Set(local.flatMap((template) => template.tags.map((tag) => String(tag || "").trim()).filter(Boolean)))).sort((a, b) => a.localeCompare(b)),
+    };
   }
 
   const styleSet = new Set<string>();
@@ -217,6 +305,8 @@ export async function getPromptTemplateBySlug(slug: string): Promise<PromptTempl
     .maybeSingle();
 
   if (error) {
+    const local = readLocalPromptTemplates().find((template) => template.slug === slug);
+    if (local) return local;
     throw new Error(`Failed to fetch prompt template: ${error.message}`);
   }
 
