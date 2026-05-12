@@ -198,6 +198,7 @@ const NewPromptPage: NextPage = () => {
       <Head>
         <title>{pageText.title}</title>
         <meta name="description" content={pageText.desc} />
+        <meta name="robots" content="noindex,follow" />
       </Head>
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <section className="rounded-2xl border border-night-700 bg-night-900/70 p-5 sm:p-6">

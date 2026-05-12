@@ -8,13 +8,14 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import CopyButton from "../../components/CopyButton";
+import ProgressiveMediaCard from "../../components/ProgressiveMediaCard";
 import { resolveLocale, t } from "../../utils/i18n";
 import { tryFormatJsonPrompt } from "../../utils/jsonPrompt";
 import {
   getPromptTemplateBySlug,
   type PromptTemplate,
 } from "../../utils/promptTemplates";
-import { absoluteUrl, buildHrefLang, safeJsonLd } from "../../utils/seo";
+import { absoluteUrl, safeJsonLd } from "../../utils/seo";
 
 function normalizePromptText(input: string) {
   return String(input || "")
@@ -41,10 +42,10 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const localeTyped = locale === "en" ? "en" : "zh";
+  const shouldNoindex = locale === "en";
   const dict = t(locale);
   const path = `/prompts/${template.slug}`;
-  const canonical = absoluteUrl(path, localeTyped);
-  const hreflangs = buildHrefLang(path);
+  const canonical = absoluteUrl(path, "zh");
   const ogImage = template.images[0] || absoluteUrl("/prompt_images/1.jpeg", localeTyped);
   const formattedJsonPrompt = tryFormatJsonPrompt(template.prompt_template);
 
@@ -171,10 +172,8 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
       <Head>
         <title>{`${template.title} ${dict.promptDetail.titleSuffix}`}</title>
         <meta name="description" content={template.desc} />
+        <meta name="robots" content={shouldNoindex ? "noindex,follow" : "index,follow"} />
         <link rel="canonical" href={canonical} />
-        {hreflangs.map((item) => (
-          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
-        ))}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={`${template.title} ${dict.promptDetail.titleSuffix}`} />
         <meta property="og:description" content={template.desc} />
@@ -331,12 +330,13 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                     className="group relative mb-3 cursor-zoom-in overflow-hidden rounded-xl border border-night-700 break-inside-avoid"
                     onClick={() => openLightbox(idx)}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <ProgressiveMediaCard
                       src={item.url}
                       alt={`${template.title} sample ${idx + 1}`}
-                      loading="lazy"
-                      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04] group-hover:brightness-90"
+                      aspectClassName="aspect-[4/5]"
+                      loadingLabel="Loading gallery image"
+                      errorLabel="Gallery image unavailable"
+                      imageClassName="group-hover:scale-[1.04] group-hover:brightness-90"
                     />
                   </figure>
                 ))}
@@ -357,12 +357,13 @@ const PromptDetailPage: NextPage<{ template: PromptTemplate }> = ({ template }) 
                   className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-night-700 bg-night-800 transition-all duration-300 hover:border-glow-500/30"
                 >
                   <button type="button" onClick={() => openLightbox(idx)} className="block w-full text-left">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <ProgressiveMediaCard
                       src={item.url}
                       alt={`${template.title} gallery ${idx + 1}`}
-                      loading="lazy"
-                      className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      aspectClassName="aspect-[4/5]"
+                      loadingLabel="Loading gallery image"
+                      errorLabel="Gallery image unavailable"
+                      imageClassName="group-hover:scale-[1.03]"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-night-950/85 to-transparent" />
                   </button>

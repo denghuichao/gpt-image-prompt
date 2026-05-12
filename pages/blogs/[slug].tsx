@@ -3,13 +3,14 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { resolveLocale, t } from "../../utils/i18n";
-import { absoluteUrl, buildHrefLang } from "../../utils/seo";
+import { absoluteUrl, safeJsonLd } from "../../utils/seo";
 import { getAllBlogSlugs, getBlogPostBySlug, type BlogPost } from "../../utils/blog";
 
 const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const localeTyped = locale === "en" ? "en" : "zh";
+  const shouldNoindex = locale === "en";
   const dict = t(locale);
 
   if (!post) {
@@ -34,18 +35,60 @@ const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
   }
 
   const path = `/blogs/${post.slug}`;
-  const canonical = absoluteUrl(path, localeTyped);
-  const hreflangs = buildHrefLang(path);
+  const canonical = absoluteUrl(path, "zh");
+  const description = post.excerpt || post.title;
+  const ogImage = post.cover
+    ? absoluteUrl(post.cover, localeTyped)
+    : absoluteUrl("/favicon.png", localeTyped);
+  const publishedTime = post.date && !Number.isNaN(Date.parse(post.date))
+    ? new Date(post.date).toISOString()
+    : "";
 
   return (
     <>
       <Head>
         <title>{`${post.title} | AI Image Prompt Gallery`}</title>
-        <meta name="description" content={post.excerpt || post.title} />
+        <meta name="description" content={description} />
+        <meta name="robots" content={shouldNoindex ? "noindex,follow" : "index,follow"} />
         <link rel="canonical" href={canonical} />
-        {hreflangs.map((item) => (
-          <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
-        ))}
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={ogImage} />
+        {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={ogImage} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              headline: post.title,
+              description,
+              image: ogImage,
+              datePublished: publishedTime || undefined,
+              dateModified: publishedTime || undefined,
+              mainEntityOfPage: canonical,
+              author: {
+                "@type": "Organization",
+                name: "AI Image Prompt Gallery",
+              },
+              publisher: {
+                "@type": "Organization",
+                name: "AI Image Prompt Gallery",
+                logo: {
+                  "@type": "ImageObject",
+                  url: absoluteUrl("/favicon.png", localeTyped),
+                },
+              },
+            }),
+          }}
+        />
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">

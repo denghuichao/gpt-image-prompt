@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { useRouter } from "next/router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import ProgressiveMediaCard from "../components/ProgressiveMediaCard";
 import { resolveLocale, t } from "../utils/i18n";
 import { isJsonLikeButInvalid, tryFormatJsonPrompt } from "../utils/jsonPrompt";
 import { getPromptTemplates, type PromptTemplate } from "../utils/promptTemplates";
@@ -597,6 +598,7 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
       <Head>
         <title>{dict.build.title}</title>
         <meta name="description" content={dict.build.description} />
+        <meta name="robots" content="noindex,follow" />
         <link rel="canonical" href={canonical} />
         {hreflangs.map((item) => (
           <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
@@ -900,12 +902,13 @@ const BuildPage: NextPage<{ templates: PromptTemplate[] }> = ({ templates }) => 
                                 className="relative overflow-hidden rounded-xl border border-night-700 text-left transition hover:border-night-500"
                               >
                                 <button type="button" onClick={() => openGeneratedPreview(msg.images || [], idx)} className="block w-full bg-night-900 text-left">
-                                  {/* Use native img for generated assets to avoid host whitelist mismatch during gateway switching. */}
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
+                                  <ProgressiveMediaCard
                                     src={src}
                                     alt={`Generated preview ${idx + 1}`}
-                                    className={useSquareTiles ? "aspect-square w-full object-cover" : "h-auto w-full object-contain"}
+                                    aspectClassName={useSquareTiles ? "aspect-square" : "aspect-[4/5]"}
+                                    fit={useSquareTiles ? "cover" : "contain"}
+                                    loadingLabel="Loading generated image"
+                                    errorLabel="Generated image unavailable"
                                   />
                                 </button>
                                 <span className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-night-950/75 to-transparent" />

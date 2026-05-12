@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { resolveLocale, t } from "../utils/i18n";
 import { getAllPublishedBlogPosts, type BlogPostMeta } from "../utils/blog";
-import { absoluteUrl, buildHrefLang } from "../utils/seo";
+import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
 
 const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
   const router = useRouter();
@@ -13,6 +13,10 @@ const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
   const dict = t(locale);
   const canonical = absoluteUrl("/blogs", localeTyped);
   const hreflangs = buildHrefLang("/blogs");
+  const featuredCover = posts.find((post) => post.cover)?.cover;
+  const ogImage = featuredCover
+    ? absoluteUrl(featuredCover, localeTyped)
+    : absoluteUrl("/favicon.png", localeTyped);
 
   return (
     <>
@@ -23,6 +27,38 @@ const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
         {hreflangs.map((item) => (
           <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
         ))}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:title" content={dict.blogs.title} />
+        <meta property="og:description" content={dict.blogs.desc} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={dict.blogs.title} />
+        <meta name="twitter:description" content={dict.blogs.desc} />
+        <meta name="twitter:image" content={ogImage} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: safeJsonLd({
+              "@context": "https://schema.org",
+              "@type": "CollectionPage",
+              name: dict.blogs.title,
+              description: dict.blogs.desc,
+              url: canonical,
+              inLanguage: locale === "en" ? "en" : "zh-CN",
+              mainEntity: {
+                "@type": "ItemList",
+                itemListElement: posts.map((post, index) => ({
+                  "@type": "ListItem",
+                  position: index + 1,
+                  url: absoluteUrl(`/blogs/${post.slug}`, localeTyped),
+                  name: post.title,
+                })),
+              },
+            }),
+          }}
+        />
       </Head>
 
       <main className="mx-auto max-w-[1960px] px-4 py-8 sm:px-6 lg:px-8">

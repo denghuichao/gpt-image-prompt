@@ -95,7 +95,7 @@ function getBlogPosts() {
 
 async function main() {
   const siteUrl = resolveSiteUrl();
-  const staticRoutes = ["/", "/gallery", "/pricing", "/build", "/blogs", "/privacy", "/terms"];
+  const staticRoutes = ["/", "/gallery", "/pricing", "/blogs", "/privacy", "/terms"];
   const entries = [];
 
   for (const route of staticRoutes) {
@@ -114,7 +114,6 @@ async function main() {
   for (const post of posts) {
     const route = `/blogs/${post.slug}`;
     entries.push(buildUrl(`${siteUrl}${localePath(route, "zh")}`, post.date || undefined));
-    entries.push(buildUrl(`${siteUrl}${localePath(route, "en")}`, post.date || undefined));
   }
 
   const xml = [
