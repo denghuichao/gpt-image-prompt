@@ -4,10 +4,31 @@ export interface I18nDict {
   siteName: string;
   footer: {
     copyright: string;
+    description: string;
+    product: string;
+    resources: string;
+    legal: string;
+    support: string;
     contactMe: string;
     privacyPolicy: string;
     termsOfService: string;
     xLabel: string;
+    githubLabel: string;
+    emailLabel: string;
+    wechatLabel: string;
+    telegramLabel: string;
+    qrHint: string;
+    nicheGraphLabel: string;
+  };
+  supportPage: {
+    title: string;
+    metaDescription: string;
+    badge: string;
+    introPrefix: string;
+    secondaryText: string;
+    channelsTitle: string;
+    channelsDescription: string;
+    backToHome: string;
   };
   nav: {
     home: string;
@@ -262,10 +283,31 @@ const EN: I18nDict = {
   siteName: "AI Image Prompt Gallery",
   footer: {
     copyright: "© AI Image Prompt Gallery",
+    description: "Structured prompt templates, searchable galleries, and build tools for serious AI image workflows.",
+    product: "Product",
+    resources: "Resources",
+    legal: "Legal",
+    support: "Support",
     contactMe: "Contact Me:",
     privacyPolicy: "Privacy Policy",
     termsOfService: "Terms of Service",
     xLabel: "X",
+    githubLabel: "GitHub",
+    emailLabel: "Email",
+    wechatLabel: "WeChat",
+    telegramLabel: "Telegram",
+    qrHint: "Scan to connect",
+    nicheGraphLabel: "NicheGraph",
+  },
+  supportPage: {
+    title: "Contact",
+    metaDescription: "Get support for AI Image Prompt Gallery through email, GitHub, X, WeChat, or Telegram.",
+    badge: "AI Image Prompt Support",
+    introPrefix: "For sales, support, or partnership inquiries, email",
+    secondaryText: "If social or direct messaging is easier for you, use X, GitHub, Email, WeChat, or Telegram below.",
+    channelsTitle: "Support channels",
+    channelsDescription: "Choose the channel that feels easiest for you.",
+    backToHome: "Back to home",
   },
   nav: {
     home: "home",
@@ -599,10 +641,31 @@ const ZH: I18nDict = {
   siteName: "AI Image Prompt Gallery",
   footer: {
     copyright: "© AI Image Prompt Gallery",
+    description: "面向专业 AI 生图工作流的结构化 Prompt 模板库、可搜索画廊与构建工具。",
+    product: "产品",
+    resources: "资源",
+    legal: "法律",
+    support: "支持",
     contactMe: "联系我：",
     privacyPolicy: "隐私政策",
     termsOfService: "服务条款",
     xLabel: "X",
+    githubLabel: "GitHub",
+    emailLabel: "邮箱",
+    wechatLabel: "微信",
+    telegramLabel: "Telegram",
+    qrHint: "扫码联系",
+    nicheGraphLabel: "NicheGraph",
+  },
+  supportPage: {
+    title: "联系我们",
+    metaDescription: "通过 Email、GitHub、X、微信或 Telegram 联系 AI Image Prompt Gallery 支持团队。",
+    badge: "AI Image Prompt 支持",
+    introPrefix: "如需咨询销售、支持或合作，请发送邮件至",
+    secondaryText: "如果你更习惯社媒或即时沟通，也可以直接通过下面的 X、GitHub、Email、WeChat 和 Telegram 联系我们。",
+    channelsTitle: "联系渠道",
+    channelsDescription: "选择你最顺手的方式联系我们。",
+    backToHome: "返回首页",
   },
   nav: {
     home: "首页",

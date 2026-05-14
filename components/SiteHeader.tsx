@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import BrandMark from "./BrandMark";
 import { resolveLocale, t } from "../utils/i18n";
 
 type PromptFacetsResponse = {
@@ -211,9 +212,17 @@ function ClerkActions({
   );
 }
 
-export default function SiteHeader() {
-  const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-  const { isLoaded, isSignedIn } = useAuth();
+type SiteHeaderContentProps = {
+  hasClerkKey: boolean;
+  isLoaded: boolean;
+  isSignedIn: boolean;
+};
+
+function SiteHeaderContent({
+  hasClerkKey,
+  isLoaded,
+  isSignedIn,
+}: SiteHeaderContentProps) {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
@@ -394,8 +403,12 @@ export default function SiteHeader() {
           <Link
             href="/"
             locale={locale}
-            className="font-brand text-[18px] font-semibold italic leading-[1.02] tracking-[0.01em] text-night-50 transition hover:text-glow-300 sm:text-[22px]"
+            className="inline-flex items-center gap-3 font-brand text-[18px] font-semibold italic leading-[1.02] tracking-[0.01em] text-night-50 transition hover:text-glow-300 sm:text-[22px]"
           >
+            <BrandMark
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-night-700 bg-night-900/80 text-night-100 shadow-card"
+              iconClassName="h-4.5 w-4.5"
+            />
             {dict.siteName}
           </Link>
 
@@ -699,4 +712,19 @@ export default function SiteHeader() {
       )}
     </header>
   );
+}
+
+function SiteHeaderWithClerk() {
+  const { isLoaded, isSignedIn } = useAuth();
+  return <SiteHeaderContent hasClerkKey isLoaded={isLoaded} isSignedIn={isSignedIn} />;
+}
+
+export default function SiteHeader() {
+  const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+  if (!hasClerkKey) {
+    return <SiteHeaderContent hasClerkKey={false} isLoaded={false} isSignedIn={false} />;
+  }
+
+  return <SiteHeaderWithClerk />;
 }

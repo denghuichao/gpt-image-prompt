@@ -193,6 +193,7 @@ async function main() {
     { route: "/gallery", changefreq: "daily", priority: 0.9 },
     { route: "/pricing", changefreq: "monthly", priority: 0.6 },
     { route: "/blogs", changefreq: "weekly", priority: 0.7 },
+    { route: "/support", changefreq: "monthly", priority: 0.5 },
     { route: "/privacy", changefreq: "yearly", priority: 0.2 },
     { route: "/terms", changefreq: "yearly", priority: 0.2 },
   ];
