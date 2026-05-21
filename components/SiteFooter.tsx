@@ -8,12 +8,16 @@ export default function SiteFooter() {
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
+  const isLandingPage = router.pathname === "/";
+  const displaySiteName = isLandingPage ? "Image Prompt Base" : dict.siteName;
+  const displayCopyright = isLandingPage ? "© Image Prompt Base" : dict.footer.copyright;
   const supportGitHubUrl = process.env.NEXT_PUBLIC_SUPPORT_GITHUB_URL || "https://github.com/denghuichao/gpt-image-2-prompts";
   const productLinks = [
     { label: dict.nav.home, href: "/" },
     { label: dict.nav.gallery, href: "/gallery" },
     { label: dict.nav.build, href: "/build" },
     { label: dict.nav.pricing, href: "/pricing" },
+    ...(isLandingPage ? [{ label: "问叶", href: "https://askleaf.xyz/", external: true }] : []),
     { label: dict.footer.nicheGraphLabel, href: "https://nichegraph.xyz", external: true },
   ];
   const resourceLinks = [
@@ -66,7 +70,7 @@ export default function SiteFooter() {
                 iconClassName="h-4.5 w-4.5"
               />
               <span className="font-brand text-[20px] font-semibold italic leading-none tracking-[0.01em] text-night-100">
-                {dict.siteName}
+                {displaySiteName}
               </span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-6 text-night-400">
@@ -112,7 +116,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="mt-10 border-t border-night-800/70 pt-6">
-          <p className="text-sm text-night-500">{dict.footer.copyright}</p>
+          <p className="text-sm text-night-500">{displayCopyright}</p>
         </div>
       </div>
     </footer>

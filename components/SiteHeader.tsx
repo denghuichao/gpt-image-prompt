@@ -226,6 +226,7 @@ function SiteHeaderContent({
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const dict = t(locale);
+  const displaySiteName = router.pathname === "/" ? "Image Prompt Base" : dict.siteName;
   const isGallery = router.pathname === "/gallery";
   const [search, setSearch] = useState("");
   const [scrolled, setScrolled] = useState(false);
@@ -409,7 +410,7 @@ function SiteHeaderContent({
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-night-700 bg-night-900/80 text-night-100 shadow-card"
               iconClassName="h-4.5 w-4.5"
             />
-            {dict.siteName}
+            {displaySiteName}
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
