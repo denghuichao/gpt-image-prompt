@@ -17,7 +17,7 @@ export default function SiteFooter() {
     { label: dict.nav.gallery, href: "/gallery" },
     { label: dict.nav.build, href: "/build" },
     { label: dict.nav.pricing, href: "/pricing" },
-    ...(isLandingPage ? [{ label: "问叶", href: "https://askleaf.xyz/", external: true }] : []),
+    { label: "问叶", href: "https://askleaf.xyz", external: true },
     { label: dict.footer.nicheGraphLabel, href: "https://nichegraph.xyz", external: true },
   ];
   const resourceLinks = [
