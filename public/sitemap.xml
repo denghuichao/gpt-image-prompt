@@ -71,6 +71,18 @@
     <priority>0.2</priority>
   </url>
   <url>
+    <loc>https://imagepromptbase.xyz/prompts/ocean-painting-flooding-an-art-gallery-1</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/prompts/watercolor-ink-splash-caricature-of-trump-and-musk-0</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
     <loc>https://imagepromptbase.xyz/prompts/ultra-realistic-smartphone-selfie-collage-3</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -6059,31 +6071,19 @@
     <lastmod>2026-05-05</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/prompts/%E6%9E%81%E7%AE%80%E4%B8%BB%E4%B9%89%E9%B8%A1%E5%B0%BE%E9%85%92%E6%91%84%E5%BD%B1-893</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <lastmod>2026-05-05</lastmod>
-  </url>
-  <url>
-    <loc>https://imagepromptbase.xyz/prompts/ultra-minimalist-cocktail-photography-soft-beige-elegant-coupe-glass-892</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <lastmod>2026-05-05</lastmod>
-  </url>
-  <url>
     <loc>https://imagepromptbase.xyz/gallery/style/photography-realism</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <lastmod>2026-05-21</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/gallery/style/paper-craft</loc>
+    <loc>https://imagepromptbase.xyz/gallery/style/illustration</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <lastmod>2026-05-21</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/gallery/style/illustration</loc>
+    <loc>https://imagepromptbase.xyz/gallery/style/paper-craft</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
     <lastmod>2026-05-21</lastmod>
@@ -6269,6 +6269,90 @@
     <lastmod>2026-05-21</lastmod>
   </url>
   <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/art-gallery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/stormy-ocean</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/surreal-realism</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/gold-frame</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/flooded-floor</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/cinematic-lighting</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/illustration</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/watercolor</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/ink-splash</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/caricature</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/street-art</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/donald-trump</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/elon-musk</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/gallery/tag/meme-portrait</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
     <loc>https://imagepromptbase.xyz/gallery/tag/selfie-collage</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -6377,12 +6461,6 @@
     <lastmod>2026-05-21</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/gallery/tag/illustration</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
     <loc>https://imagepromptbase.xyz/gallery/tag/childrens-illustration</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -6396,12 +6474,6 @@
   </url>
   <url>
     <loc>https://imagepromptbase.xyz/gallery/tag/pastel</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
-    <loc>https://imagepromptbase.xyz/gallery/tag/watercolor</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
     <lastmod>2026-05-21</lastmod>
@@ -8045,12 +8117,6 @@
     <lastmod>2026-05-08</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/gallery/tag/cinematic-lighting</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <lastmod>2026-05-08</lastmod>
-  </url>
-  <url>
     <loc>https://imagepromptbase.xyz/gallery/tag/neon-accents</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -9455,12 +9521,6 @@
     <lastmod>2026-05-06</lastmod>
   </url>
   <url>
-    <loc>https://imagepromptbase.xyz/gallery/tag/ink-splash</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <lastmod>2026-05-06</lastmod>
-  </url>
-  <url>
     <loc>https://imagepromptbase.xyz/gallery/tag/pastel-tones</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -9723,6 +9783,24 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <lastmod>2026-05-06</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/blogs/2026-05-21-10-gpt-image-2-prompts-for-character-design</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/blogs/2026-05-21-20-gpt-image-2-prompts-for-product-posters</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-05-21</lastmod>
+  </url>
+  <url>
+    <loc>https://imagepromptbase.xyz/blogs/2026-05-21-gpt-image-2-high-rated-food-new-product-poster-prompts</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-05-21</lastmod>
   </url>
   <url>
     <loc>https://imagepromptbase.xyz/blogs/ai-reddit-%E6%8C%96%E5%87%BA%E7%99%BE%E4%B8%87%E7%BE%8E%E5%85%83%E5%95%86%E6%9C%BA-45-%E5%88%86%E9%92%9F%E4%BB%8E%E7%97%9B%E7%82%B9%E5%88%B0%E8%90%BD%E5%9C%B0%E9%A1%B5%E7%9A%84%E5%AE%9E%E6%93%8D%E6%A1%86%E6%9E%B6</loc>
