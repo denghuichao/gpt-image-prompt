@@ -1,4 +1,4 @@
-# Image Prompt Base
+# AI Image Prompt Template Base for GPT Image 2
 
 Image Prompt Base is a Next.js app for browsing, creating, and reusing AI image prompts. It includes:
 
