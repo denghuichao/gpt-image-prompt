@@ -11,6 +11,7 @@ Image Prompt Base is a Next.js app for browsing, creating, and reusing AI image 
 - SEO-friendly routes, metadata, and sitemap generation
 
 Preview from: https://imagepromptbase.xyz/
+
 ![cover.png](https://github.com/denghuichao/gpt-image-prompt/blob/main/public/cover.png?raw=true)
 
 ## Tech Stack
