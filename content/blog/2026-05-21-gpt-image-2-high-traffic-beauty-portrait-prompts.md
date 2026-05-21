@@ -1,6 +1,6 @@
 ---
 title: "GPT Image 2美女人像与时尚写真提示词"
-excerpt: "5 条适合自拍拼贴、贴纸头像、居家人像、纯人像和时尚杂志风写真的真实模板，完整保留 prompt、样例图和原始来源。"
+excerpt: "自拍拼贴、贴纸头像、居家人像、纯人像和时尚写真提示词合集，包含完整 prompt、样例图、原始链接和试一试链接。"
 date: "2026-05-21"
 tags:
   - GPT-Image-2
@@ -14,11 +14,45 @@ published: true
 
 # GPT Image 2美女人像与时尚写真提示词
 
-## 1. 3D CG Cozy Home Selfie Portrait
+## 1. Ultra-Realistic Smartphone Selfie Collage
 
-- 用法：A high-detail 3D CG prompt for a sweet adult female character lounging on a sofa in warm indoor sunlight.
+- 适合：自拍墙、相册拼贴、社媒头像
+- 标签：`photography-realism / selfie-collage / smartphone-ui / portrait / korean-beauty / fashion / photorealistic`
+- 样例图：![Ultra-Realistic Smartphone Selfie Collage](https://pbs.twimg.com/media/HIwPLdVaYAA9Q-H?format=jpg&name=medium)
+- 原始链接：<https://x.com/MissDelulu9/status/2057035830179569830>
+- 试一试：[打开该提示词](https://imagepromptbase.xyz/en/prompts/ultra-realistic-smartphone-selfie-collage-3)
+- 完整 Prompt：
+
+```text
+Ultra-realistic selfie photo collage displayed inside a modern smartphone gallery interface, showing multiple portrait shots of a beautiful young Asian woman with soft feminine visuals and natural Korean-inspired beauty aesthetics. She has long straight jet-black hair with silky smooth texture, wispy see-through bangs framing her face, glowing fair skin with dewy makeup finish, soft peach-pink blush, glossy nude pink lips, subtle eyeliner, long lashes, and sharp yet delicate facial features.
+
+She is wearing a fitted black sleeveless tank top that exposes her shoulders and collarbone naturally, combined with minimalist gold hoop earrings. In several frames she also wears a vibrant red baseball cap with curved brim, giving a sporty street-style aesthetic.
+
+The collage consists of various selfie poses and expressions: playful wink, pouty duck-face kiss expression, soft smile, confident neutral stare, side-profile angle, upward gaze, and candid cute expressions. Every frame captures slightly different angles and emotions, creating a lively and expressive mood.
+
+Lighting is soft natural daylight entering from a nearby window, producing realistic highlight
+```
+
+## 2. Photorealistic Woman Sticker Pack Expression Grid
+
+- 适合：表情包、贴纸包、头像周边
+- 标签：`photography-realism / sticker-pack / emoji-stickers / portrait-grid / photorealistic-woman / expressions / die-cut / social-media-aesthetic`
+- 样例图：![Photorealistic Woman Sticker Pack Expression Grid](https://pbs.twimg.com/media/HIxyuOHaYAA3WzI?format=jpg&name=medium)
+- 原始链接：<https://x.com/iamsofiaijaz/status/2057145271675765241>
+- 试一试：[打开该提示词](https://imagepromptbase.xyz/en/prompts/photorealistic-woman-sticker-pack-expression-grid-2)
+- 完整 Prompt：
+
+```text
+A high-quality sticker pack featuring a young beautiful English woman with long soft brown hair, flawless glowing skin, and attractive facial features, shown in 12 different facial expressions and emotions. Arranged in a clean 4x3 grid on a light neutral beige background. Each portrait is cropped around the shoulders and surrounded by a thick white die-cut sticker border. Expressions include: friendly smile, laughing joyfully, cool pose with black sunglasses, angry frowning face, shocked expression with wide eyes and open mouth, thoughtful thinking pose with hand on chin, playful wink, heart hands gesture, suspicious sideways glance, puffed cheeks, excited surprise with hands on face, and casual salute. Consistent character appearance across all stickers. Realistic digital photography style, ultra-detailed skin and hair texture, soft studio lighting, vibrant natural colors, trendy social media emoji/sticker aesthetic, centered composition, high resolution, clean minimal layout, premium sticker sheet design, photorealistic, cute and expressive.
+```
+
+## 3. 3D CG Cozy Home Selfie Portrait
+
+- 适合：居家人像、软光自拍、3D 角色感
 - 标签：`3d / 3d-cg / anime-inspired / female-portrait / cozy-interior / selfie-angle / soft-sunlight`
 - 样例图：![3D CG Cozy Home Selfie Portrait](https://pbs.twimg.com/media/HINMGJtbsAAbg0L?format=jpg&name=medium)
+- 原始链接：<https://x.com/liyue_ai/status/2054569571227771348>
+- 试一试：[打开该提示词](https://imagepromptbase.xyz/en/prompts/3d-cg-cozy-home-selfie-portrait-8)
 - 完整 Prompt：
 
 ```text
@@ -35,39 +69,13 @@ published: true
 画面风格为高质量 3D CG 角色渲染，偏日系美少女审美但更加真实立体，精致建模，PBR 材质，细腻皮肤着色，柔和次表面散射，真实布料褶皱，电影级柔光，高清细节，干净背景，甜美、性感、可爱、居家、阳光、清爽、高级。
 ```
 
-- 源链接：<https://x.com/liyue_ai/status/2054569571227771348>
-
-## 2. Fisheye Fashion Model in Vintage Bedroom
-
-- 用法：Portrait prompt for a fashion-model styled woman in a vintage white bookcase bedroom with warm night lighting and Fujifilm Classic Chrome mood.
-- 标签：`portrait / fashion-model / fisheye-lens / vintage-bedroom / warm-indoor-lighting / fujifilm-classic-chrome`
-- 样例图：![Fisheye Fashion Model in Vintage Bedroom](https://pbs.twimg.com/media/HHCX4nVbQAA5-wr?format=jpg&name=900x900)
-- 完整 Prompt：
-
-```text
-an elegant beautiful seductive stunning 20-year-old Japanese or Korean woman, tall elegant fashion model body with balanced feminine curves, sharp delicate V-line jaw and tapered chin, petite symmetrical oval face. main outfit: off-white strapless cropped tube top, close-fitting stretch fabric, black low-rise side-tie bikini bottoms, string-tied hips. setting: vintage white bookcase bedroom. camera: cowboy shot, low angle, shot on fisheye lens. lighting: indoor warm night atmosphere, soft side light. atmosphere: Fujifilm Classic Chrome look.
-```
-
-- 源链接：<https://x.com/VIBEQUIRKLABS/status/2049305010861986179>
-
-## 3. Photorealistic Woman Sticker Pack Expression Grid
-
-- 用法：A premium die-cut sticker sheet showing one consistent young woman in 12 expressive portraits arranged in a 4x3 grid.
-- 标签：`photography-realism / sticker-pack / emoji-stickers / portrait-grid / photorealistic-woman / expressions / die-cut / social-media-aesthetic`
-- 样例图：![Photorealistic Woman Sticker Pack Expression Grid](https://pbs.twimg.com/media/HIxyuOHaYAA3WzI?format=jpg&name=medium)
-- 完整 Prompt：
-
-```text
-A high-quality sticker pack featuring a young beautiful English woman with long soft brown hair, flawless glowing skin, and attractive facial features, shown in 12 different facial expressions and emotions. Arranged in a clean 4x3 grid on a light neutral beige background. Each portrait is cropped around the shoulders and surrounded by a thick white die-cut sticker border. Expressions include: friendly smile, laughing joyfully, cool pose with black sunglasses, angry frowning face, shocked expression with wide eyes and open mouth, thoughtful thinking pose with hand on chin, playful wink, heart hands gesture, suspicious sideways glance, puffed cheeks, excited surprise with hands on face, and casual salute. Consistent character appearance across all stickers. Realistic digital photography style, ultra-detailed skin and hair texture, soft studio lighting, vibrant natural colors, trendy social media emoji/sticker aesthetic, centered composition, high resolution, clean minimal layout, premium sticker sheet design, photorealistic, cute and expressive.
-```
-
-- 源链接：<https://x.com/iamsofiaijaz/status/2057145271675765241>
-
 ## 4. Realistic East Asian Woman Portrait
 
-- 用法：Highly realistic medium close-up portrait of a young East Asian woman with a white lace blindfold, raised arms, and a sheer white blouse in soft bright daylight.
+- 适合：纯人像、时尚肖像、棚拍写真
 - 标签：`photography-realism / portrait / realistic / woman / natural-light / studio / fashion`
 - 样例图：![Realistic East Asian Woman Portrait](https://pbs.twimg.com/media/HHzkT2PbkAAmjjR?format=jpg&name=900x900)
+- 原始链接：<https://x.com/OninoETH/status/2052766690631622854>
+- 试一试：[打开该提示词](https://imagepromptbase.xyz/en/prompts/realistic-east-asian-woman-portrait-0)
 - 完整 Prompt：
 
 ```text
@@ -84,23 +92,15 @@ Wearing a sheer, wrinkled white gauze blouse that is open at the front with thin
 Exact same medium close-up upper-body framing as the uploaded photo (from chest up, side profile), shallow depth of field, soft natural look.
 ```
 
-- 源链接：<https://x.com/OninoETH/status/2052766690631622854>
+## 5. Fisheye Fashion Model in Vintage Bedroom
 
-## 5. Ultra-Realistic Smartphone Selfie Collage
-
-- 用法：A smartphone gallery-style collage of multiple ultra-realistic selfies featuring a Korean-inspired beauty aesthetic.
-- 标签：`photography-realism / selfie-collage / smartphone-ui / portrait / korean-beauty / fashion / photorealistic`
-- 样例图：![Ultra-Realistic Smartphone Selfie Collage](https://pbs.twimg.com/media/HIwPLdVaYAA9Q-H?format=jpg&name=medium)
+- 适合：复古卧室、鱼眼时尚拍摄
+- 标签：`portrait / fashion-model / fisheye-lens / vintage-bedroom / warm-indoor-lighting / fujifilm-classic-chrome`
+- 样例图：![Fisheye Fashion Model in Vintage Bedroom](https://pbs.twimg.com/media/HHCX4nVbQAA5-wr?format=jpg&name=900x900)
+- 原始链接：<https://x.com/VIBEQUIRKLABS/status/2049305010861986179>
+- 试一试：[打开该提示词](https://imagepromptbase.xyz/en/prompts/fisheye-fashion-model-in-vintage-bedroom-0)
 - 完整 Prompt：
 
 ```text
-Ultra-realistic selfie photo collage displayed inside a modern smartphone gallery interface, showing multiple portrait shots of a beautiful young Asian woman with soft feminine visuals and natural Korean-inspired beauty aesthetics. She has long straight jet-black hair with silky smooth texture, wispy see-through bangs framing her face, glowing fair skin with dewy makeup finish, soft peach-pink blush, glossy nude pink lips, subtle eyeliner, long lashes, and sharp yet delicate facial features.
-
-She is wearing a fitted black sleeveless tank top that exposes her shoulders and collarbone naturally, combined with minimalist gold hoop earrings. In several frames she also wears a vibrant red baseball cap with curved brim, giving a sporty street-style aesthetic.
-
-The collage consists of various selfie poses and expressions: playful wink, pouty duck-face kiss expression, soft smile, confident neutral stare, side-profile angle, upward gaze, and candid cute expressions. Every frame captures slightly different angles and emotions, creating a lively and expressive mood.
-
-Lighting is soft natural daylight entering from a nearby window, producing realistic highlight
+an elegant beautiful seductive stunning 20-year-old Japanese or Korean woman, tall elegant fashion model body with balanced feminine curves, sharp delicate V-line jaw and tapered chin, petite symmetrical oval face. main outfit: off-white strapless cropped tube top, close-fitting stretch fabric, black low-rise side-tie bikini bottoms, string-tied hips. setting: vintage white bookcase bedroom. camera: cowboy shot, low angle, shot on fisheye lens. lighting: indoor warm night atmosphere, soft side light. atmosphere: Fujifilm Classic Chrome look.
 ```
-
-- 源链接：<https://x.com/MissDelulu9/status/2057035830179569830>
