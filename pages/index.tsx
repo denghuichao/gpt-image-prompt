@@ -94,7 +94,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
           <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
         ))}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:site_name" content="Image Prompt Base" />
         <meta property="og:title" content={dict.home.title} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:url" content={canonical} />
@@ -109,7 +109,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
             __html: safeJsonLd({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "AI Image Prompt Gallery",
+              name: "Image Prompt Base",
               url: absoluteUrl("/", "zh"),
               inLanguage: ["zh-CN", "en"],
               description: seoDescription,
@@ -123,7 +123,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
             __html: safeJsonLd({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "AI Image Prompt Gallery",
+              name: "Image Prompt Base",
               url: absoluteUrl("/", "zh"),
               logo: ogImage,
             }),

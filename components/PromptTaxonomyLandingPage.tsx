@@ -53,8 +53,8 @@ export default function PromptTaxonomyLandingPage({
   const ogImage = absoluteUrl(initialTemplates[0]?.images[0] || "/prompt_images/1.jpeg", locale);
   const description = buildDescription(kind, term, locale);
   const title = locale === "en"
-    ? `${term} ${kind === "style" ? "Style" : "Tag"} Prompts | AI Image Prompt Gallery`
-    : `${term}${kind === "style" ? "风格" : "标签"}提示词 | AI Image Prompt Gallery`;
+    ? `${term} ${kind === "style" ? "Style" : "Tag"} Prompts | Image Prompt Base`
+    : `${term}${kind === "style" ? "风格" : "标签"}提示词 | Image Prompt Base`;
 
   const [templates, setTemplates] = useState<PromptTemplate[]>(initialTemplates);
   const [nextCursor, setNextCursor] = useState<number | null>(initialNextCursor);
@@ -112,7 +112,7 @@ export default function PromptTaxonomyLandingPage({
         <meta name="robots" content={locale === "en" ? "noindex,follow" : "index,follow"} />
         <link rel="canonical" href={canonical} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:site_name" content="Image Prompt Base" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={canonical} />

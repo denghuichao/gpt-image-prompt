@@ -18,7 +18,7 @@ const SupportPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{dict.supportPage.title} | AI Image Prompt Gallery</title>
+        <title>{dict.supportPage.title} | Image Prompt Base</title>
         <meta name="description" content={dict.supportPage.metaDescription} />
         <link rel="canonical" href={canonical} />
         {hreflangs.map((item) => (

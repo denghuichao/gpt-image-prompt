@@ -28,7 +28,7 @@ const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
           <link key={item.locale} rel="alternate" hrefLang={item.locale} href={item.href} />
         ))}
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:site_name" content="Image Prompt Base" />
         <meta property="og:title" content={dict.blogs.title} />
         <meta property="og:description" content={dict.blogs.desc} />
         <meta property="og:url" content={canonical} />

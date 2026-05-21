@@ -47,12 +47,12 @@ const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
   return (
     <>
       <Head>
-        <title>{`${post.title} | AI Image Prompt Gallery`}</title>
+        <title>{`${post.title} | Image Prompt Base`}</title>
         <meta name="description" content={description} />
         <meta name="robots" content={shouldNoindex ? "noindex,follow" : "index,follow"} />
         <link rel="canonical" href={canonical} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="AI Image Prompt Gallery" />
+        <meta property="og:site_name" content="Image Prompt Base" />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={canonical} />
@@ -76,11 +76,11 @@ const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
               mainEntityOfPage: canonical,
               author: {
                 "@type": "Organization",
-                name: "AI Image Prompt Gallery",
+                name: "Image Prompt Base",
               },
               publisher: {
                 "@type": "Organization",
-                name: "AI Image Prompt Gallery",
+                name: "Image Prompt Base",
                 logo: {
                   "@type": "ImageObject",
                   url: absoluteUrl("/favicon.png", localeTyped),
