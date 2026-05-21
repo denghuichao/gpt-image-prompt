@@ -11,7 +11,7 @@ const TermsPage: NextPage = () => {
   const localeTyped = locale === "en" ? "en" : "zh";
   const canonical = absoluteUrl("/terms", localeTyped);
   const hreflangs = buildHrefLang("/terms");
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@gptimageprompt.xyz";
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@imagepromptbase.xyz";
 
   return (
     <>

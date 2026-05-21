@@ -24,7 +24,7 @@ GPT-Image-2 全量开放后，X 时间线里高质量案例明显变多。这里
 - 采集插件：`https://github.com/denghuichao/x-capture`
 > 一个浏览器插件，支持一键采集x上面推友们分享的高质量提示词，并通过AI生成可服用，可管理的json结构
 
-- 可视化展示和检索：`https://gptimageprompt.xyz/gallery`
+- 可视化展示和检索：`https://imagepromptbase.xyz/gallery`
 
 
 ![61.png](/blog_images/61.png)

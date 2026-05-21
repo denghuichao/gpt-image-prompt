@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_BASE_URL = 'https://gptimageprompt.xyz';
+const DEFAULT_BASE_URL = 'https://imagepromptbase.xyz';
 const DEFAULT_BLOG_DIR = path.resolve(process.cwd(), 'content/blog');
 
 function parseArgs(argv) {

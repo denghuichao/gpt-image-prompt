@@ -11,7 +11,7 @@ const PrivacyPage: NextPage = () => {
   const localeTyped = locale === "en" ? "en" : "zh";
   const canonical = absoluteUrl("/privacy", localeTyped);
   const hreflangs = buildHrefLang("/privacy");
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@gptimageprompt.xyz";
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@imagepromptbase.xyz";
 
   return (
     <>

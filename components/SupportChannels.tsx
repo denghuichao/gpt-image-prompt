@@ -85,7 +85,7 @@ export default function SupportChannels({ variant = "compact" }: { variant?: Var
   const router = useRouter();
   const locale = resolveLocale(router.locale);
   const [activeQr, setActiveQr] = useState<Channel | null>(null);
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@gptimageprompt.xyz";
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@imagepromptbase.xyz";
   const supportXUrl = process.env.NEXT_PUBLIC_SUPPORT_X_URL || "https://x.com/LouwlouAiDev";
   const supportGitHubUrl = process.env.NEXT_PUBLIC_SUPPORT_GITHUB_URL || "https://github.com/denghuichao/gpt-image-2-prompts";
   const copy = locale === "zh"

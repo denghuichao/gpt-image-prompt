@@ -44,7 +44,7 @@ function buildUrl(loc, options = {}) {
 }
 
 function resolveSiteUrl() {
-  const prodUrl = "https://gptimageprompt.xyz";
+  const prodUrl = "https://imagepromptbase.xyz";
   const raw = String(
     process.env.SITEMAP_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "",
   ).trim();
