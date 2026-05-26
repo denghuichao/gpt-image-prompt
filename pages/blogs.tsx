@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { resolveLocale, t } from "../utils/i18n";
 import { getAllPublishedBlogPosts, type BlogPostMeta } from "../utils/blog";
+import { previewBlogImage } from "../utils/imagePreview";
 import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
 
 const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
@@ -86,7 +87,7 @@ const BlogsPage: NextPage<{ posts: BlogPostMeta[] }> = ({ posts }) => {
                   <div className="overflow-hidden border-b border-night-700/80">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={post.cover}
+                      src={previewBlogImage(post.cover)}
                       alt={post.title}
                       loading="lazy"
                       decoding="async"

@@ -25,6 +25,13 @@ function PlaceholderIcon() {
   );
 }
 
+function resolvePreviewSrc(src: string) {
+  if (!src.startsWith("/prompt_images/") || src.startsWith("/prompt_images/preview/")) {
+    return src;
+  }
+  return src.replace("/prompt_images/", "/prompt_images/preview/");
+}
+
 export default function ProgressiveMediaCard({
   src,
   alt,
@@ -37,11 +44,12 @@ export default function ProgressiveMediaCard({
   imgProps,
   imageClassName = "",
 }: ProgressiveMediaCardProps) {
-  const [status, setStatus] = useState<"loading" | "loaded" | "error">(src ? "loading" : "error");
+  const resolvedSrc = src ? resolvePreviewSrc(src) : "";
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">(resolvedSrc ? "loading" : "error");
 
   useEffect(() => {
-    setStatus(src ? "loading" : "error");
-  }, [src]);
+    setStatus(resolvedSrc ? "loading" : "error");
+  }, [resolvedSrc]);
 
   const isLoaded = status === "loaded";
   const hasError = status === "error";
@@ -51,11 +59,11 @@ export default function ProgressiveMediaCard({
       className={`relative w-full overflow-hidden bg-night-900 ${aspectClassName} ${className}`}
       aria-busy={!isLoaded}
     >
-      {src && (
+      {resolvedSrc && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           {...imgProps}
-          src={src}
+          src={resolvedSrc}
           alt={alt}
           loading={imgProps?.loading || "lazy"}
           decoding={imgProps?.decoding || "async"}

@@ -75,7 +75,7 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
   const meta = normalizeMeta(slug, data as Record<string, unknown>);
   if (!meta.published) return null;
 
-  const html = marked.parse(content) as string;
+  const html = (marked.parse(content) as string).replace(/(<img\b[^>]*\bsrc=")\/blog_images\//g, "$1/blog_images/preview/");
   return {
     ...meta,
     markdown: content,

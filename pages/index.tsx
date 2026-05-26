@@ -1,6 +1,5 @@
 import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import fs from "fs";
@@ -11,8 +10,7 @@ import { resolveLocale, t } from "../utils/i18n";
 import { pricingConfig } from "../utils/pricingConfig";
 import { absoluteUrl, buildHrefLang, safeJsonLd } from "../utils/seo";
 
-const SHUFFLE_BATCH_SIZE = 12;
-const SHUFFLE_INTERVAL_MS = 20000;
+const SHUFFLE_BATCH_SIZE = 10;
 const SHUFFLE_STAGGER_MS = 70;
 const SHUFFLE_TRANSITION_MS = 420;
 
@@ -42,29 +40,6 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
   useEffect(() => {
     if (previewImages.length === 0) return;
     setVisibleImages(pickRandomBatch(previewImages, SHUFFLE_BATCH_SIZE));
-  }, [previewImages]);
-
-  useEffect(() => {
-    if (previewImages.length <= SHUFFLE_BATCH_SIZE) return;
-    const outTotal = SHUFFLE_TRANSITION_MS + SHUFFLE_STAGGER_MS * (SHUFFLE_BATCH_SIZE - 1);
-    const inTotal = SHUFFLE_TRANSITION_MS + SHUFFLE_STAGGER_MS * (SHUFFLE_BATCH_SIZE - 1);
-    let inTimer: number | null = null;
-
-    const interval = window.setInterval(() => {
-      setShuffleState("out");
-      window.setTimeout(() => {
-        setVisibleImages((prev) => pickRandomBatch(previewImages, SHUFFLE_BATCH_SIZE, prev));
-        setShuffleState("in-prep");
-        window.requestAnimationFrame(() => {
-          setShuffleState("in");
-          inTimer = window.setTimeout(() => setShuffleState("idle"), inTotal + 40);
-        });
-      }, outTotal + 30);
-    }, SHUFFLE_INTERVAL_MS);
-    return () => {
-      window.clearInterval(interval);
-      if (inTimer) window.clearTimeout(inTimer);
-    };
   }, [previewImages]);
 
   function cardMotion(index: number) {
@@ -193,11 +168,12 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
                 style={motion.style}
               >
                 <div className="relative">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={src}
                     alt={`prompt image ${idx + 1}`}
-                    width={600}
-                    height={800}
+                    loading={idx < 4 ? "eager" : "lazy"}
+                    decoding="async"
                     className="h-auto w-full object-cover transition duration-500 group-hover:scale-[1.04]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-950/70 via-transparent to-transparent" />
@@ -376,7 +352,7 @@ const Home: NextPage<{ previewImages: string[] }> = ({ previewImages }) => {
 export default Home;
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const rootDir = path.join(process.cwd(), "public", "prompt_images");
+  const rootDir = path.join(process.cwd(), "public", "prompt_images", "preview");
   const exts = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"]);
   const collected: string[] = [];
 
@@ -397,7 +373,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
   }
 
-  walk(rootDir, "/prompt_images");
+  walk(rootDir, "/prompt_images/preview");
 
   const previewImages = collected;
   return { props: { previewImages } };

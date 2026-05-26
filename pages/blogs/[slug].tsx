@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { resolveLocale, t } from "../../utils/i18n";
 import { absoluteUrl, safeJsonLd } from "../../utils/seo";
 import { getAllBlogSlugs, getBlogPostBySlug, type BlogPost } from "../../utils/blog";
+import { previewBlogImage } from "../../utils/imagePreview";
 
 const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
   const router = useRouter();
@@ -119,7 +120,7 @@ const BlogDetailPage: NextPage<{ post: BlogPost | null }> = ({ post }) => {
           {post.cover && (
             <div className="mt-5 overflow-hidden rounded-xl border border-night-700">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={post.cover} alt={post.title} className="h-auto w-full object-cover" />
+              <img src={previewBlogImage(post.cover)} alt={post.title} loading="eager" decoding="async" className="h-auto w-full object-cover" />
             </div>
           )}
 

@@ -15,6 +15,7 @@ module.exports = {
     localeDetection: false,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
